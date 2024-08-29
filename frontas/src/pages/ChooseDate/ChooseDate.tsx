@@ -12,12 +12,22 @@ import {
   Grid,
   TextField,
   Typography,
+  IconButton,
 } from '@mui/material';
+import { Edit } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { useNavigate } from 'react-router-dom';
+
+interface GroupInfo {
+  faculty: string;
+  yearOfEntry: number;
+  yearOfGraduation: number;
+  elder: string;
+}
 
 interface User {
   name: string;
@@ -27,6 +37,21 @@ interface User {
   phrase: string;
   group: string;
 }
+
+const mockGroups: Record<string, GroupInfo> = {
+  'Group A': {
+    faculty: 'Engineering',
+    yearOfEntry: 2018,
+    yearOfGraduation: 2022,
+    elder: 'Jonas Jonaitis',
+  },
+  'Group B': {
+    faculty: 'Arts',
+    yearOfEntry: 2019,
+    yearOfGraduation: 2023,
+    elder: 'Petras Petraitis',
+  },
+};
 
 const mockUsers: User[] = [
   { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Group A' },
@@ -44,6 +69,8 @@ const groupedUsers = mockUsers.reduce<Record<string, User[]>>((acc, user) => {
 }, {});
 
 const AdminPhotoshoot: React.FC = () => {
+  const navigate = useNavigate();
+
   const [groupDatesTimes, setGroupDatesTimes] = useState<Record<string, { date: Dayjs | null; time: Dayjs | null; location: string }>>({
     'Group A': { date: null, time: null, location: '' },
     'Group B': { date: null, time: null, location: '' },
@@ -84,15 +111,53 @@ const AdminPhotoshoot: React.FC = () => {
     // Implement save logic here for the specific group
   };
 
+  const handleEditGroup = (group: string) => {
+    navigate(`/group/${group}`);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container maxWidth="md" style={{ paddingTop: '20px' }}>
+      <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
         {Object.keys(groupedUsers).map((group, index) => (
-          <React.Fragment key={index}>
-            <Typography variant="h6" style={{ marginTop: '20px' }}>
-              {group}
-            </Typography>
-            <TableContainer component={Paper} style={{ marginBottom: '20px' }}>
+          <Paper key={index} style={{ marginBottom: '20px', padding: '20px' }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={9}>
+                <Grid container alignItems="center" spacing={1}>
+                  <Grid item>
+                    <Typography variant="h6">{group}</Typography>
+                  </Grid>
+                  <Grid item>
+                    <IconButton onClick={() => handleEditGroup(group)} size="small">
+                      <Edit />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="subtitle1">Fakultetas:</Typography>
+                    <Typography variant="body2">{mockGroups[group].faculty}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="subtitle1">Įstojimo metai:</Typography>
+                    <Typography variant="body2">{mockGroups[group].yearOfEntry}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="subtitle1">Baigimo metai:</Typography>
+                    <Typography variant="body2">{mockGroups[group].yearOfGraduation}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="subtitle1">Grupės seniūnas:</Typography>
+                    <Typography variant="body2">{mockGroups[group].elder}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="subtitle1">Narių skaičius:</Typography>
+                    <Typography variant="body2">{groupedUsers[group].length}</Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <TableContainer component={Paper} style={{ marginTop: '20px', marginBottom: '20px' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -155,7 +220,7 @@ const AdminPhotoshoot: React.FC = () => {
                 </Button>
               </Grid>
             </Grid>
-          </React.Fragment>
+          </Paper>
         ))}
       </Container>
     </LocalizationProvider>
