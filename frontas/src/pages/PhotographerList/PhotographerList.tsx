@@ -9,9 +9,10 @@ import {
   TableRow,
   Paper,
   Typography,
-  Button,
-  Grid,
+  IconButton,
 } from '@mui/material';
+import { Edit, GetApp, PhotoCamera } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 
 interface User {
@@ -28,33 +29,49 @@ interface PhotoshootInfo {
   location: string;
   date: string;
   time: string;
+  faculty: string;
+  yearOfEntry: number;
+  yearOfGraduation: number;
+  university: string;
+  elder: string;
   members: User[];
 }
 
 const mockPhotoshootData: PhotoshootInfo[] = [
   {
-    groupName: 'Group A',
-    location: 'Studio 1',
+    groupName: 'Kompiuterių Mokslai 2022',
+    location: 'Studija 1',
     date: '2024-08-30',
     time: '10:00',
+    faculty: 'Inžinerija ir Informatika',
+    yearOfEntry: 2018,
+    yearOfGraduation: 2022,
+    university: 'Vilniaus Universitetas',
+    elder: 'Jonas Jonaitis',
     members: [
-      { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Group A' },
-      { name: 'Ona', surname: 'Onaitė', email: 'ona.onaite@example.com', telephone: '+37060000002', phrase: 'Portretas', group: 'Group A' },
+      { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Kompiuterių Mokslai 2022' },
+      { name: 'Ona', surname: 'Onaitė', email: 'ona.onaite@example.com', telephone: '+37060000002', phrase: 'Portretas', group: 'Kompiuterių Mokslai 2022' },
     ],
   },
   {
-    groupName: 'Group B',
-    location: 'Outdoor Park',
+    groupName: 'Menas ir Dizainas 2023',
+    location: 'Lauko Parkas',
     date: '2024-08-31',
     time: '14:00',
+    faculty: 'Menai',
+    yearOfEntry: 2019,
+    yearOfGraduation: 2023,
+    university: 'Kauno Technologijos Universitetas',
+    elder: 'Petras Petraitis',
     members: [
-      { name: 'Petras', surname: 'Petraitis', email: 'petras.petraitis@example.com', telephone: '+37060000001', phrase: 'Studija', group: 'Group B' },
-      { name: 'Kazys', surname: 'Kazlauskas', email: 'kazys.kazlauskas@example.com', telephone: '+37060000003', phrase: 'Lauko fotografija', group: 'Group B' },
+      { name: 'Petras', surname: 'Petraitis', email: 'petras.petraitis@example.com', telephone: '+37060000001', phrase: 'Studija', group: 'Menas ir Dizainas 2023' },
+      { name: 'Kazys', surname: 'Kazlauskas', email: 'kazys.kazlauskas@example.com', telephone: '+37060000003', phrase: 'Lauko fotografija', group: 'Menas ir Dizainas 2023' },
     ],
   },
 ];
 
-const PhotographerView: React.FC = () => {
+const PhotographerList: React.FC = () => {
+  const navigate = useNavigate();
 
   const handleDownload = (groupName: string, members: User[]) => {
     const wsData = [
@@ -72,67 +89,66 @@ const PhotographerView: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, groupName);
 
-    XLSX.writeFile(workbook, `${groupName}_members.xlsx`);
+    XLSX.writeFile(workbook, `${groupName}_nariai.xlsx`);
+  };
+
+  const handleEditGroup = (groupName: string) => {
+    navigate(`/edit-group/${groupName}`);
+  };
+
+  const handleUploadPhotos = (groupName: string) => {
+    navigate(`/upload-photos/${groupName}`);
   };
 
   return (
-    <Container maxWidth="md" style={{ paddingTop: '20px' }}>
+    <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
       <Typography variant="h4" gutterBottom>
-        Fotografijų tvarkaraštis
+        Tvarkaraštis
       </Typography>
-      {mockPhotoshootData.map((photoshoot, index) => (
-        <React.Fragment key={index}>
-          <Typography variant="h6" style={{ marginTop: '20px' }}>
-            {photoshoot.groupName}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Vieta: {photoshoot.location}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Data: {photoshoot.date}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Laikas: {photoshoot.time}
-          </Typography>
-
-          <TableContainer component={Paper} style={{ marginTop: '10px', marginBottom: '20px' }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Vardas</TableCell>
-                  <TableCell>Pavardė</TableCell>
-                  <TableCell>El. paštas</TableCell>
-                  <TableCell>Telefonas</TableCell>
-                  <TableCell>Fraze</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {photoshoot.members.map((member, memberIndex) => (
-                  <TableRow key={memberIndex}>
-                    <TableCell>{member.name}</TableCell>
-                    <TableCell>{member.surname}</TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>{member.telephone}</TableCell>
-                    <TableCell>{member.phrase}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Grid container justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleDownload(photoshoot.groupName, photoshoot.members)}
-            >
-              Atsisiųsti {photoshoot.groupName} sąrašą
-            </Button>
-          </Grid>
-        </React.Fragment>
-      ))}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Grupė</TableCell>
+              <TableCell>Data ir Laikas</TableCell>
+              <TableCell>Vieta</TableCell>
+              <TableCell>Fakultetas</TableCell>
+              <TableCell>Universitetas</TableCell>
+              <TableCell>Įstojimo/Baigimo Metai</TableCell>
+              <TableCell>Grupės Seniūnas / Narių Skaičius</TableCell>
+              <TableCell>Veiksmai</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {mockPhotoshootData.map((photoshoot, index) => (
+              <TableRow key={index}>
+                <TableCell>{photoshoot.groupName}</TableCell>
+                <TableCell>{photoshoot.date} {photoshoot.time}</TableCell>
+                <TableCell>{photoshoot.location}</TableCell>
+                <TableCell>{photoshoot.faculty}</TableCell>
+                <TableCell>{photoshoot.university}</TableCell>
+                <TableCell>{photoshoot.yearOfEntry} / {photoshoot.yearOfGraduation}</TableCell>
+                <TableCell>
+                  {photoshoot.elder} / {photoshoot.members.length} nariai
+                </TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleEditGroup(photoshoot.groupName)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton onClick={() => handleUploadPhotos(photoshoot.groupName)}>
+                    <PhotoCamera />
+                  </IconButton>
+                  <IconButton onClick={() => handleDownload(photoshoot.groupName, photoshoot.members)}>
+                    <GetApp />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 };
 
-export default PhotographerView;
+export default PhotographerList;
