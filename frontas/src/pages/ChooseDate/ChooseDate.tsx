@@ -12,22 +12,15 @@ import {
   Grid,
   TextField,
   Typography,
-  IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
 } from '@mui/material';
-import { Edit } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
-import { useNavigate } from 'react-router-dom';
-
-interface GroupInfo {
-  faculty: string;
-  yearOfEntry: number;
-  yearOfGraduation: number;
-  elder: string;
-}
 
 interface User {
   name: string;
@@ -38,193 +31,171 @@ interface User {
   group: string;
 }
 
-const mockGroups: Record<string, GroupInfo> = {
-  'Group A': {
-    faculty: 'Engineering',
-    yearOfEntry: 2018,
-    yearOfGraduation: 2022,
-    elder: 'Jonas Jonaitis',
-  },
-  'Group B': {
-    faculty: 'Arts',
-    yearOfEntry: 2019,
-    yearOfGraduation: 2023,
-    elder: 'Petras Petraitis',
-  },
-};
+interface GroupInfo {
+  name: string;
+  location: string;
+  date: Dayjs | null;
+  time: Dayjs | null;
+  members: User[];
+}
 
-const mockUsers: User[] = [
-  { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Group A' },
-  { name: 'Petras', surname: 'Petraitis', email: 'petras.petraitis@example.com', telephone: '+37060000001', phrase: 'Studija', group: 'Group B' },
-  { name: 'Ona', surname: 'Onaitė', email: 'ona.onaite@example.com', telephone: '+37060000002', phrase: 'Portretas', group: 'Group A' },
-  { name: 'Kazys', surname: 'Kazlauskas', email: 'kazys.kazlauskas@example.com', telephone: '+37060000003', phrase: 'Lauko fotografija', group: 'Group B' },
+const mockGroups: GroupInfo[] = [
+  {
+    name: 'Kompiuterių Mokslai 2022',
+    location: 'Studija 1',
+    date: dayjs('2024-08-30'),
+    time: dayjs('10:00', 'HH:mm'),
+    members: [
+      { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Kompiuterių Mokslai 2022' },
+      { name: 'Ona', surname: 'Onaitė', email: 'ona.onaite@example.com', telephone: '+37060000002', phrase: 'Portretas', group: 'Kompiuterių Mokslai 2022' },
+    ],
+  },
+  {
+    name: 'Menas ir Dizainas 2023',
+    location: 'Lauko Parkas',
+    date: dayjs('2024-08-31'),
+    time: dayjs('14:00', 'HH:mm'),
+    members: [
+      { name: 'Petras', surname: 'Petraitis', email: 'petras.petraitis@example.com', telephone: '+37060000001', phrase: 'Studija', group: 'Menas ir Dizainas 2023' },
+      { name: 'Kazys', surname: 'Kazlauskas', email: 'kazys.kazlauskas@example.com', telephone: '+37060000003', phrase: 'Lauko fotografija', group: 'Menas ir Dizainas 2023' },
+    ],
+  },
 ];
 
-const groupedUsers = mockUsers.reduce<Record<string, User[]>>((acc, user) => {
-  if (!acc[user.group]) {
-    acc[user.group] = [];
-  }
-  acc[user.group].push(user);
-  return acc;
-}, {});
+const ChooseDate: React.FC = () => {
+  const [selectedGroup, setSelectedGroup] = useState<string>(mockGroups[0].name);
+  const [groupData, setGroupData] = useState<GroupInfo>(mockGroups[0]);
 
-const AdminPhotoshoot: React.FC = () => {
-  const navigate = useNavigate();
+  const handleGroupChange = (event: SelectChangeEvent) => {
+    const groupName = event.target.value;
+    const groupInfo = mockGroups.find((group) => group.name === groupName);
+    if (groupInfo) {
+      setSelectedGroup(groupName);
+      setGroupData(groupInfo);
+    }
+  };
 
-  const [groupDatesTimes, setGroupDatesTimes] = useState<Record<string, { date: Dayjs | null; time: Dayjs | null; location: string }>>({
-    'Group A': { date: null, time: null, location: '' },
-    'Group B': { date: null, time: null, location: '' },
-  });
-
-  const handleDateChange = (group: string, newValue: Dayjs | null) => {
-    setGroupDatesTimes(prevState => ({
-      ...prevState,
-      [group]: {
-        ...prevState[group],
-        date: newValue,
-      },
+  const handleDateChange = (newDate: Dayjs | null) => {
+    setGroupData((prev) => ({
+      ...prev,
+      date: newDate,
     }));
   };
 
-  const handleTimeChange = (group: string, newValue: Dayjs | null) => {
-    setGroupDatesTimes(prevState => ({
-      ...prevState,
-      [group]: {
-        ...prevState[group],
-        time: newValue,
-      },
+  const handleTimeChange = (newTime: Dayjs | null) => {
+    setGroupData((prev) => ({
+      ...prev,
+      time: newTime,
     }));
   };
 
-  const handleLocationChange = (group: string, newValue: string) => {
-    setGroupDatesTimes(prevState => ({
-      ...prevState,
-      [group]: {
-        ...prevState[group],
-        location: newValue,
-      },
+  const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupData((prev) => ({
+      ...prev,
+      location: event.target.value,
     }));
   };
 
-  const handleSave = (group: string) => {
-    console.log(`Group ${group} Details:`, groupDatesTimes[group]);
-    // Implement save logic here for the specific group
-  };
-
-  const handleEditGroup = (group: string) => {
-    navigate(`/group/${group}`);
+  const handleSave = () => {
+    console.log('Group Data:', groupData);
+    // Save logic goes here
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
-        {Object.keys(groupedUsers).map((group, index) => (
-          <Paper key={index} style={{ marginBottom: '20px', padding: '20px' }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={9}>
-                <Grid container alignItems="center" spacing={1}>
-                  <Grid item>
-                    <Typography variant="h6">{group}</Typography>
-                  </Grid>
-                  <Grid item>
-                    <IconButton onClick={() => handleEditGroup(group)} size="small">
-                      <Edit />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} sm={3}>
-                    <Typography variant="subtitle1">Fakultetas:</Typography>
-                    <Typography variant="body2">{mockGroups[group].faculty}</Typography>
-                  </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <Typography variant="subtitle1">Įstojimo metai:</Typography>
-                    <Typography variant="body2">{mockGroups[group].yearOfEntry}</Typography>
-                  </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <Typography variant="subtitle1">Baigimo metai:</Typography>
-                    <Typography variant="body2">{mockGroups[group].yearOfGraduation}</Typography>
-                  </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <Typography variant="subtitle1">Grupės seniūnas:</Typography>
-                    <Typography variant="body2">{mockGroups[group].elder}</Typography>
-                  </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <Typography variant="subtitle1">Narių skaičius:</Typography>
-                    <Typography variant="body2">{groupedUsers[group].length}</Typography>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
+      <Container maxWidth="md" style={{ paddingTop: '20px' }}>
+        <Typography variant="h4" gutterBottom>
+          Grupės Datos Pasirinkimas
+        </Typography>
 
-            <TableContainer component={Paper} style={{ marginTop: '20px', marginBottom: '20px' }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Vardas</TableCell>
-                    <TableCell>Pavardė</TableCell>
-                    <TableCell>El. paštas</TableCell>
-                    <TableCell>Telefonas</TableCell>
-                    <TableCell>Fraze</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {groupedUsers[group].map((user, userIndex) => (
-                    <TableRow key={userIndex}>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.surname}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.telephone}</TableCell>
-                      <TableCell>{user.phrase}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+        {/* Group Selection */}
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          <Grid item xs={12}>
+            <Select
+              fullWidth
+              value={selectedGroup}
+              onChange={handleGroupChange}
+              variant="outlined"
+            >
+              {mockGroups.map((group) => (
+                <MenuItem key={group.name} value={group.name}>
+                  {group.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+        </Grid>
 
-            <Grid container spacing={2} style={{ marginTop: '10px' }}>
-              <Grid item xs={4}>
-                <DatePicker
-                  label="Pasirinkite datą"
-                  value={groupDatesTimes[group].date}
-                  onChange={(newValue) => handleDateChange(group, newValue)}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TimePicker
-                  label="Pasirinkite laiką"
-                  value={groupDatesTimes[group].time}
-                  onChange={(newValue) => handleTimeChange(group, newValue)}
-                  ampm={false} // Set to 24-hour format
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  label="Vieta"
-                  fullWidth
-                  value={groupDatesTimes[group].location}
-                  onChange={(e) => handleLocationChange(group, e.target.value)}
-                />
-              </Grid>
-            </Grid>
+        {/* Group Information */}
+        <Typography variant="h6">{groupData.name}</Typography>
+        <TableContainer component={Paper} style={{ marginBottom: '20px' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Vardas</TableCell>
+                <TableCell>Pavardė</TableCell>
+                <TableCell>El. paštas</TableCell>
+                <TableCell>Telefonas</TableCell>
+                <TableCell>Fraze</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groupData.members.map((member, index) => (
+                <TableRow key={index}>
+                  <TableCell>{member.name}</TableCell>
+                  <TableCell>{member.surname}</TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.telephone}</TableCell>
+                  <TableCell>{member.phrase}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-            <Grid container spacing={2} style={{ marginTop: '10px' }}>
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleSave(group)}
-                  fullWidth
-                >
-                  Išsaugoti {group} duomenis
-                </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        ))}
+        {/* Date and Time Selection */}
+        <Grid container spacing={2}>
+          <Grid item xs={4}>
+            <DatePicker
+              label="Pasirinkite datą"
+              value={groupData.date}
+              onChange={handleDateChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TimePicker
+              label="Pasirinkite laiką"
+              value={groupData.time}
+              onChange={handleTimeChange}
+              ampm={false} // 24-hour format
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Vieta"
+              fullWidth
+              value={groupData.location}
+              onChange={handleLocationChange}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Save Button */}
+        <Grid container spacing={2} style={{ marginTop: '20px' }}>
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSave}
+              fullWidth
+            >
+              Išsaugoti
+            </Button>
+          </Grid>
+        </Grid>
       </Container>
     </LocalizationProvider>
   );
 };
 
-export default AdminPhotoshoot;
+export default ChooseDate;

@@ -11,8 +11,9 @@ import {
   Typography,
   IconButton,
   Grid,
+  Button,
 } from '@mui/material';
-import { GetApp, PhotoCamera, HowToVote } from '@mui/icons-material';
+import { Edit, GetApp, CalendarToday, Info } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 
@@ -35,6 +36,7 @@ interface PhotoshootInfo {
   yearOfGraduation: number;
   university: string;
   elder: string;
+  orderStatus: string; // new field for order status
   members: User[];
 }
 
@@ -49,6 +51,7 @@ const mockPhotoshootData: PhotoshootInfo[] = [
     yearOfGraduation: 2022,
     university: 'Vilniaus Universitetas',
     elder: 'Jonas Jonaitis',
+    orderStatus: 'Patvirtinta', // Order status example
     members: [
       { name: 'Jonas', surname: 'Jonaitis', email: 'jonas.jonaitis@example.com', telephone: '+37060000000', phrase: 'Fotografija', group: 'Kompiuterių Mokslai 2022' },
       { name: 'Ona', surname: 'Onaitė', email: 'ona.onaite@example.com', telephone: '+37060000002', phrase: 'Portretas', group: 'Kompiuterių Mokslai 2022' },
@@ -64,6 +67,7 @@ const mockPhotoshootData: PhotoshootInfo[] = [
     yearOfGraduation: 2023,
     university: 'Kauno Technologijos Universitetas',
     elder: 'Petras Petraitis',
+    orderStatus: 'Vyksta', // Order status example
     members: [
       { name: 'Petras', surname: 'Petraitis', email: 'petras.petraitis@example.com', telephone: '+37060000001', phrase: 'Studija', group: 'Menas ir Dizainas 2023' },
       { name: 'Kazys', surname: 'Kazlauskas', email: 'kazys.kazlauskas@example.com', telephone: '+37060000003', phrase: 'Lauko fotografija', group: 'Menas ir Dizainas 2023' },
@@ -71,7 +75,7 @@ const mockPhotoshootData: PhotoshootInfo[] = [
   },
 ];
 
-const PhotographerList: React.FC = () => {
+const AdminView: React.FC = () => {
   const navigate = useNavigate();
 
   const handleDownload = (groupName: string, members: User[]) => {
@@ -93,20 +97,22 @@ const PhotographerList: React.FC = () => {
     XLSX.writeFile(workbook, `${groupName}_nariai.xlsx`);
   };
 
-  const handleUploadPhotos = (groupName: string) => {
-    navigate(`/upload-photos/${groupName}`);
+  const handleEditGroup = (groupName: string) => {
+    navigate(`/edit-group/${groupName}`);
   };
 
-  const handleStartVote = (groupName: string) => {
-    // Logic to start a vote for the photo background for the group
-    console.log(`Voting for photo background started for ${groupName}`);
-    // Implement the backend call or further actions here
+  const handleChooseDate = (groupName: string) => {
+    navigate(`/choosedate/${groupName}`);
+  };
+
+  const handleViewOrderStatus = (groupName: string) => {
+    navigate(`/order-status/${groupName}`);
   };
 
   return (
     <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
       <Typography variant="h4" gutterBottom>
-        Tvarkaraštis
+        Grupės Valdymas
       </Typography>
       <TableContainer component={Paper}>
         <Table>
@@ -119,6 +125,7 @@ const PhotographerList: React.FC = () => {
               <TableCell>Universitetas</TableCell>
               <TableCell>Įstojimo/Baigimo Metai</TableCell>
               <TableCell>Grupės Seniūnas / Narių Skaičius</TableCell>
+              <TableCell>Užsakymo Statusas</TableCell>
               <TableCell>Veiksmai</TableCell>
             </TableRow>
           </TableHead>
@@ -134,11 +141,17 @@ const PhotographerList: React.FC = () => {
                 <TableCell>
                   {photoshoot.elder} / {photoshoot.members.length} nariai
                 </TableCell>
+                <TableCell>{photoshoot.orderStatus}</TableCell>
                 <TableCell>
                   <Grid container spacing={1}>
                     <Grid item>
-                      <IconButton onClick={() => handleUploadPhotos(photoshoot.groupName)}>
-                        <PhotoCamera />
+                      <IconButton onClick={() => handleEditGroup(photoshoot.groupName)}>
+                        <Edit />
+                      </IconButton>
+                    </Grid>
+                    <Grid item>
+                      <IconButton onClick={() => handleChooseDate(photoshoot.groupName)}>
+                        <CalendarToday />
                       </IconButton>
                     </Grid>
                     <Grid item>
@@ -147,9 +160,9 @@ const PhotographerList: React.FC = () => {
                       </IconButton>
                     </Grid>
                     <Grid item>
-                      <IconButton onClick={() => handleStartVote(photoshoot.groupName)}>
-                        <HowToVote />
-                      </IconButton>
+                      <Button variant="contained" color="primary" onClick={() => handleViewOrderStatus(photoshoot.groupName)}>
+                        Peržiūrėti Užsakymą
+                      </Button>
                     </Grid>
                   </Grid>
                 </TableCell>
@@ -162,4 +175,4 @@ const PhotographerList: React.FC = () => {
   );
 };
 
-export default PhotographerList;
+export default AdminView;
