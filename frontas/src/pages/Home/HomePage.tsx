@@ -6,13 +6,36 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 const theme = createTheme();
 
 function LoginPage() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const loginData = {
+      prisijungimoVardas: data.get('email'),
+      slaptazodis: data.get('password'),
+    };
+
+    try {
+      const response = await fetch('https://localhost:44359/api/Auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Login successful:', result);
+        // Handle successful login, e.g., save token, redirect user, etc.
+      } else {
+        const errorData = await response.json();
+        console.log('Login failed:', errorData);
+        // Handle failed login, e.g., show error message.
+      }
+    } catch (error) {
+      console.error('Error during login request:', error);
+      // Handle network or other errors.
+    }
   };
 
   return (
