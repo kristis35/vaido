@@ -1,11 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Avatar, Button, TextField, FormControlLabel, Checkbox, Link, Grid, Box, Typography, Container } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { jwtDecode } from 'jwt-decode';
 
 const theme = createTheme();
 
+interface JwtPayload {
+  role: 'seniunas' | 'studentas' | 'fotolaboratorija' | 'maketuotojas' | 'fotografas' | 'administratoriust' | 'super administratorius';
+  exp: number;
+  [key: string]: any;
+}
+
 function LoginPage() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  const handleRoleBasedRedirect = (role: JwtPayload['role']) => {
+    switch (role) {
+      case 'super administratorius':
+        console.log('Redirecting to Super Admin dashboard');
+        // Logic to redirect to Super Admin dashboard
+        break;
+      case 'administratoriust':
+        console.log('Redirecting to Admin dashboard');
+        // Logic to redirect to Admin dashboard
+        break;
+      case 'studentas':
+        console.log('Redirecting to Student dashboard');
+        // Logic to redirect to Student dashboard
+        break;
+      case 'seniunas':
+        console.log('Redirecting to Seniunas dashboard');
+        // Logic to redirect to Seniunas dashboard
+        break;
+      case 'fotolaboratorija':
+        console.log('Redirecting to Fotolaboratorija dashboard');
+        // Logic to redirect to Fotolaboratorija dashboard
+        break;
+      case 'maketuotojas':
+        console.log('Redirecting to Maketuotojas dashboard');
+        // Logic to redirect to Maketuotojas dashboard
+        break;
+      case 'fotografas':
+        console.log('Redirecting to Fotografas dashboard');
+        // Logic to redirect to Fotografas dashboard
+        break;
+      default:
+        console.log('Role not recognized');
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -25,16 +70,22 @@ function LoginPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Login successful:', result);
-        // Handle successful login, e.g., save token, redirect user, etc.
+        const token = result.token;
+        localStorage.setItem('jwtToken', token);
+
+        // Decode token to get user role
+        const decodedToken: JwtPayload = jwtDecode<JwtPayload>(token);
+        setUserRole(decodedToken.role);
+
+        // Redirect based on the user's role
+        handleRoleBasedRedirect(decodedToken.role);
       } else {
         const errorData = await response.json();
-        console.log('Login failed:', errorData);
-        // Handle failed login, e.g., show error message.
+        setErrorMessage(errorData.message || 'Login failed');
       }
     } catch (error) {
       console.error('Error during login request:', error);
-      // Handle network or other errors.
+      setErrorMessage('An error occurred during login. Please try again.');
     }
   };
 
@@ -55,6 +106,11 @@ function LoginPage() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {errorMessage && (
+            <Typography color="error" variant="body2">
+              {errorMessage}
+            </Typography>
+          )}
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -76,10 +132,6 @@ function LoginPage() {
               id="password"
               autoComplete="current-password"
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <Button
               type="submit"
               fullWidth
@@ -88,19 +140,12 @@ function LoginPage() {
             >
               Sign In
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="#" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
           </Box>
+          {userRole && (
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              Logged in as: {userRole}
+            </Typography>
+          )}
         </Box>
       </Container>
     </ThemeProvider>
