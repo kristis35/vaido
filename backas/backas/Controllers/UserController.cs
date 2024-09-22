@@ -180,5 +180,28 @@ namespace backas.Controllers
             return Ok(new { message = "User updated successfully." });
         }
 
+        [HttpGet("get-all-users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            // Fetch all users from the database
+            var users = await _context.Vartotojai
+                        .Include(u => u.Universitetas)  // Optionally include related data
+                        .Include(u => u.Fakultetas)     // Optionally include related data
+                        .Select(u => new
+                        {
+                            u.Id,
+                            u.PrisijungimoVardas,
+                            u.Vardas,
+                            u.Pavarde,
+                            u.Telefonas,
+                            u.VartotojoRole,
+                            Universitetas = u.Universitetas != null ? u.Universitetas.Pavadinimas : null,  // Null-safe navigation
+                            Fakultetas = u.Fakultetas != null ? u.Fakultetas.Pavadinimas : null             // Null-safe navigation
+                        })
+                        .ToListAsync();
+
+            // Return the list of users in the response
+            return Ok(users);
+        }
     }
 }

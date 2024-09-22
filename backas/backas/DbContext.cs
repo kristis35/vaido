@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Text.Json.Serialization;
 
 namespace backas
 {
@@ -158,7 +159,8 @@ namespace backas
 
         // Foreign key to Universitetas
         public int UniversitetasId { get; set; }
-        public Universitetas Universitetas { get; set; }
+        [JsonIgnore]
+        public Universitetas Universitetas { get; set; } // This breaks the cycle
 
         // Navigation property for related Vartotojai
         public ICollection<Vartotojai> Vartotojai { get; set; }
