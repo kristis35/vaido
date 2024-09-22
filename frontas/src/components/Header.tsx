@@ -56,6 +56,24 @@ const Header: React.FC = () => {
               <Button color="inherit" component={Link} to="/userlist">
                 User List
               </Button>
+              <Button color="inherit" component={Link} to="/addgroup">
+                Add Group
+              </Button>
+              <Button color="inherit" component={Link} to="/addfaculty">
+                Add Faculty
+              </Button>
+              <Button color="inherit" component={Link} to="/adduniversity">
+                Add University
+              </Button>
+              <Button color="inherit" component={Link} to="/universitylist">
+                University List
+              </Button>
+              <Button color="inherit" component={Link} to="/facultylist">
+                Faculty List
+              </Button>
+              <Button color="inherit" component={Link} to="/grouplist">
+                Group List
+              </Button>
             </>
           )}
 

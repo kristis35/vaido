@@ -273,18 +273,6 @@ const AddMaster: React.FC = () => {
                                 InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label={<>Žmonių skaičius<RedAsterisk>*</RedAsterisk></>}
-                                name="numberOfPeople"
-                                value={user.numberOfPeople}
-                                onChange={(event) => handleInputChange(index, event)}
-                                error={errors[index] && !user.numberOfPeople}
-                                helperText={errors[index] && !user.numberOfPeople ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
                         <Grid item xs={12} style={{ textAlign: 'right' }}>
                             {users.length > 1 && (
                                 <IconButton
