@@ -15,11 +15,17 @@ import EditGroup from '../pages/EditGroup/EditGroup';
 import { useAuth } from '../services/api/Context';
 import VotingPage from '../pages/VotingPage/VotingPage';
 import UserList from '../pages/UserList/UserList';
+import AddGroup from '../pages/AddGroup/AddGroup';
+import AddFaculty from '../pages/AddFaculty/AddFaculty';
+import AddUniversity from '../pages/AddUniversity/AddUniversity';
+import UniversityList from '../pages/UniversityList/UniversityList';
+import FacultyList from '../pages/FacultyList/FacultyList';
+import GroupList from '../pages/GroupList/GroupList';
 
 
 const AppRouter = () => {
   const { role } = useAuth();
-
+ 
   return (
     <Router>
       <Header /> {/* Include the Header component here */}
@@ -41,6 +47,12 @@ const AppRouter = () => {
             <Route path="/photographerlist" element={<PhotographerList />} />
             <Route path="/photoupload" element={<PhotoUpload />} />
             <Route path="/adduserlist" element={<AddUserList />} />
+            <Route path="/addgroup" element={<AddGroup />} />
+            <Route path="/addfaculty" element={<AddFaculty />} />
+            <Route path="/adduniversity" element={<AddUniversity />} />
+            <Route path="/universitylist" element={<UniversityList />} />
+            <Route path="/facultylist" element={<FacultyList />} />
+            <Route path="/grouplist" element={<GroupList />} />
           </>
         )}
 
