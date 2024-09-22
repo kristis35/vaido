@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backas")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a40e9dee0de371c53d96d75e251c5be5ca9448b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+340dbcded1ca353f78aea4a4462dea7cd7f16f37")]
 [assembly: System.Reflection.AssemblyProductAttribute("backas")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backas")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
