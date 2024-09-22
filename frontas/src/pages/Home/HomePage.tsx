@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Avatar, Button, TextField, FormControlLabel, Checkbox, Link, Grid, Box, Typography, Container } from '@mui/material';
+import { Navigate } from 'react-router-dom';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useAuth } from '../../services/api/Context';
 import { jwtDecode } from 'jwt-decode';
 
 const theme = createTheme();
@@ -15,12 +17,11 @@ interface JwtPayload {
 function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-
+  const { setRole } = useAuth();
   const handleRoleBasedRedirect = (role: JwtPayload['role']) => {
     switch (role) {
       case 'super administratorius':
-        console.log('Redirecting to Super Admin dashboard');
-        // Logic to redirect to Super Admin dashboard
+        <Navigate to="/user_list" />
         break;
       case 'administratoriust':
         console.log('Redirecting to Admin dashboard');
@@ -72,14 +73,12 @@ function LoginPage() {
         const result = await response.json();
         const token = result.token;
         localStorage.setItem('jwtToken', token);
-
-        // Decode token to get user role
+  
         const decodedToken: JwtPayload = jwtDecode<JwtPayload>(token);
-        setUserRole(decodedToken.role);
-
-        // Redirect based on the user's role
+        setRole(decodedToken.role); // Set the role in the context
+  
         handleRoleBasedRedirect(decodedToken.role);
-      } else {
+      }  else {
         const errorData = await response.json();
         setErrorMessage(errorData.message || 'Login failed');
       }

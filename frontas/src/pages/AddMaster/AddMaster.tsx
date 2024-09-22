@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Container,
     TextField,
     Button,
     IconButton,
     Grid,
-    Typography,
     Paper,
     Box,
     Alert,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    SelectChangeEvent,
 } from '@mui/material';
 import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material';
 import { styled } from '@mui/system';
+import { getData, postData } from '../../services/api/Axios'; // Import the axios helper functions
+import { University, Faculty, User } from '../../interfaces'; // Import interfaces from the new file
 
 // Custom styles for the red asterisk
 const RedAsterisk = styled('span')({
@@ -19,34 +25,62 @@ const RedAsterisk = styled('span')({
     marginLeft: 2,
 });
 
-interface User {
-    name: string;
-    surname: string;
-    email: string;
-    telephone: string;
-    university: string;
-    faculty: string;
-    entryYear: string;
-    graduationYear: string;
-    numberOfPeople: string;
-}
+const roles = [
+    { value: 'seniunas', label: 'Seniūnas' },
+    { value: 'studentas', label: 'Studentas' },
+    { value: 'fotolaboratorija', label: 'Fotolaboratorija' },
+    { value: 'maketuotojas', label: 'Maketuotojas' },
+    { value: 'fotografas', label: 'Fotografas' },
+    { value: 'administratoriust', label: 'Administratorius' },
+    { value: 'super administratorius', label: 'Super Administratorius' },
+];
 
 const AddMaster: React.FC = () => {
     const [users, setUsers] = useState<User[]>([
-        { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '' },
+        { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '', role: 'studentas' },
     ]);
+    const [universities, setUniversities] = useState<University[]>([]);
+    const [faculties, setFaculties] = useState<Faculty[]>([]);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [errors, setErrors] = useState<boolean[]>([]);
 
-    const handleInputChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    useEffect(() => {
+        // Fetch universities and faculties when the component mounts
+        const fetchUniversities = async () => {
+            try {
+                const universityList = await getData<University[]>('/UniversityCrud/all');
+                setUniversities(universityList);
+            } catch (error) {
+                console.error('Nepavyko gauti universitetų sąrašo:', error);
+            }
+        };
+
+        const fetchFaculties = async () => {
+            try {
+                const facultyList = await getData<Faculty[]>('/Fakultetas/all');
+                setFaculties(facultyList);
+            } catch (error) {
+                console.error('Nepavyko gauti fakultetų sąrašo:', error);
+            }
+        };
+
+        fetchUniversities();
+        fetchFaculties();
+    }, []);
+
+    const handleInputChange = (
+        index: number,
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+    ) => {
         const { name, value } = event.target;
         const newUsers = [...users];
-        newUsers[index] = { ...newUsers[index], [name]: value };
+        newUsers[index] = { ...newUsers[index], [name!]: value };
         setUsers(newUsers);
     };
 
     const handleAddUser = () => {
-        setUsers([...users, { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '' }]);
+        setUsers([...users, { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '', role: 'studentas' }]);
     };
 
     const handleRemoveUser = (index: number) => {
@@ -54,40 +88,56 @@ const AddMaster: React.FC = () => {
         setUsers(newUsers);
     };
 
-    const handleSubmit = () => {
-        // Check if all fields are filled
-        const allFieldsFilled = users.every(user =>
-            user.name &&
-            user.surname &&
-            user.email &&
-            user.telephone &&
-            user.university &&
-            user.faculty &&
-            user.entryYear &&
-            user.graduationYear &&
-            user.numberOfPeople
+    const validateFields = () => {
+        const validationErrors = users.map(user =>
+            !user.name ||
+            !user.surname ||
+            !user.email ||
+            !user.telephone ||
+            !user.university ||
+            !user.faculty ||
+            !user.entryYear ||
+            !user.graduationYear ||
+            !user.numberOfPeople ||
+            !user.role
         );
+        setErrors(validationErrors);
+        return validationErrors.every(isValid => !isValid);
+    };
 
-        if (!allFieldsFilled) {
+    const handleSubmit = async () => {
+        if (!validateFields()) {
             alert('Prašome užpildyti visus laukus.');
             return;
         }
 
-        // Simulate loading and then show success message
+        // Prepare data to send to the API
+        const userData = users.map(user => ({
+            prisijungimoVardas: user.email,
+            vardas: user.name,
+            pavarde: user.surname,
+            telefonas: user.telephone,
+            vartotojoRole: user.role,
+            universitetasId: parseInt(user.university),
+            fakultetasId: parseInt(user.faculty),
+        }));
+
         setLoading(true);
-        setTimeout(() => {
+        try {
+            await postData('/User/create', userData);
             setLoading(false);
             setSuccessMessage('Asmuo sėkmingai pridėtas!');
-            // Optionally clear form after successful submission
             setUsers([
-                { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '' },
+                { name: '', surname: '', email: '', telephone: '', university: '', faculty: '', entryYear: '', graduationYear: '', numberOfPeople: '', role: 'studentas' },
             ]);
-        }, 1000);
+        } catch (error) {
+            console.error('Klaida pridedant asmenį:', error);
+            setLoading(false);
+        }
     };
 
     return (
         <Container maxWidth="md" style={{ padding: 16 }}>
-            {/* Success Message */}
             {successMessage && (
                 <Box marginBottom={2}>
                     <Alert severity="success">{successMessage}</Alert>
@@ -100,163 +150,139 @@ const AddMaster: React.FC = () => {
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Vardas<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Vardas<RedAsterisk>*</RedAsterisk></>}
                                 name="name"
                                 value={user.name}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.name}
-                                helperText={!user.name ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true, // Ensures label remains above input field when not focused
-                                }}
+                                error={errors[index] && !user.name}
+                                helperText={errors[index] && !user.name ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Pavardė<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Pavardė<RedAsterisk>*</RedAsterisk></>}
                                 name="surname"
                                 value={user.surname}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.surname}
-                                helperText={!user.surname ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.surname}
+                                helperText={errors[index] && !user.surname ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        El. paštas<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>El. paštas<RedAsterisk>*</RedAsterisk></>}
                                 name="email"
                                 value={user.email}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.email}
-                                helperText={!user.email ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.email}
+                                helperText={errors[index] && !user.email ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Telefonas<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Telefonas<RedAsterisk>*</RedAsterisk></>}
                                 name="telephone"
                                 value={user.telephone}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.telephone}
-                                helperText={!user.telephone ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.telephone}
+                                helperText={errors[index] && !user.telephone ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth error={errors[index] && !user.university}>
+                                <InputLabel shrink>
+                                    Universitetas<RedAsterisk>*</RedAsterisk>
+                                </InputLabel>
+                                <Select
+                                    name="university"
+                                    value={user.university}
+                                    onChange={(event) => handleInputChange(index, event as SelectChangeEvent<string>)}
+                                >
+                                    {universities.map((university) => (
+                                        <MenuItem key={university.id} value={university.id.toString()}>
+                                            {university.pavadinimas}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth error={errors[index] && !user.faculty}>
+                                <InputLabel shrink>
+                                    Fakultetas<RedAsterisk>*</RedAsterisk>
+                                </InputLabel>
+                                <Select
+                                    name="faculty"
+                                    value={user.faculty}
+                                    onChange={(event) => handleInputChange(index, event as SelectChangeEvent<string>)}
+                                >
+                                    {faculties.map((faculty) => (
+                                        <MenuItem key={faculty.id} value={faculty.id.toString()}>
+                                            {faculty.pavadinimas}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth error={errors[index] && !user.role}>
+                                <InputLabel shrink>
+                                    Rolė<RedAsterisk>*</RedAsterisk>
+                                </InputLabel>
+                                <Select
+                                    name="role"
+                                    value={user.role}
+                                    onChange={(event) => handleInputChange(index, event as SelectChangeEvent<string>)}
+                                >
+                                    {roles.map((role) => (
+                                        <MenuItem key={role.value} value={role.value}>
+                                            {role.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Universitetas<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
-                                name="university"
-                                value={user.university}
-                                onChange={(event) => handleInputChange(index, event)}
-                                error={!user.university}
-                                helperText={!user.university ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label={
-                                    <>
-                                        Fakultetas<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
-                                name="faculty"
-                                value={user.faculty}
-                                onChange={(event) => handleInputChange(index, event)}
-                                error={!user.faculty}
-                                helperText={!user.faculty ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label={
-                                    <>
-                                        Įstojimo metai<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Įstojimo metai<RedAsterisk>*</RedAsterisk></>}
                                 name="entryYear"
                                 value={user.entryYear}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.entryYear}
-                                helperText={!user.entryYear ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.entryYear}
+                                helperText={errors[index] && !user.entryYear ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Baigimo metai<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Baigimo metai<RedAsterisk>*</RedAsterisk></>}
                                 name="graduationYear"
                                 value={user.graduationYear}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.graduationYear}
-                                helperText={!user.graduationYear ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.graduationYear}
+                                helperText={errors[index] && !user.graduationYear ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label={
-                                    <>
-                                        Žmonių skaičius<RedAsterisk>*</RedAsterisk>
-                                    </>
-                                }
+                                label={<>Žmonių skaičius<RedAsterisk>*</RedAsterisk></>}
                                 name="numberOfPeople"
                                 value={user.numberOfPeople}
                                 onChange={(event) => handleInputChange(index, event)}
-                                error={!user.numberOfPeople}
-                                helperText={!user.numberOfPeople ? 'Privalomas laukas' : ''}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
+                                error={errors[index] && !user.numberOfPeople}
+                                helperText={errors[index] && !user.numberOfPeople ? 'Privalomas laukas' : ''}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} style={{ textAlign: 'right' }}>
@@ -287,11 +313,12 @@ const AddMaster: React.FC = () => {
                 color="primary"
                 onClick={handleSubmit}
                 fullWidth
+                disabled={loading}
             >
-                Pridėti
+                {loading ? 'Kraunasi...' : 'Pridėti'}
             </Button>
         </Container>
     );
 };
 
-export default AddMaster
+export default AddMaster;
