@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Table,
@@ -13,26 +13,27 @@ import {
   Grid,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
-
-// Mock data for universities
-interface University {
-  id: number;
-  name: string;
-}
-
-const mockUniversities: University[] = [
-  { id: 1, name: 'Vilniaus Universitetas' },
-  { id: 2, name: 'Kauno Technologijos Universitetas' },
-  { id: 3, name: 'Vilniaus Gedimino Technikos Universitetas' },
-];
+import { getData } from '../../services/api/Axios'; // Import your Axios helper
+import { University } from '../../interfaces';
 
 const UniversityList: React.FC = () => {
-  const [universities, setUniversities] = useState<University[]>(mockUniversities);
+  const [universities, setUniversities] = useState<University[]>([]);
+
+  // Fetch university data from the API
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        const universityList = await getData<University[]>('/UniversityCrud/all');
+        setUniversities(universityList);
+      } catch (error) {
+        console.error('Failed to fetch universities:', error);
+      }
+    };
+
+    fetchUniversities();
+  }, []);
 
   const handleAddUniversity = () => {
-    const newId = universities.length + 1;
-    const newUniversity: University = { id: newId, name: `Naujas Universitetas ${newId}` };
-    setUniversities([...universities, newUniversity]);
   };
 
   return (
@@ -41,14 +42,14 @@ const UniversityList: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           Universitetų Sąrašas
         </Typography>
-        <Button
+        {/* <Button
           variant="contained"
           color="primary"
           startIcon={<Add />}
           onClick={handleAddUniversity}
         >
           Pridėti Universitetą
-        </Button>
+        </Button> */}
       </Grid>
 
       <TableContainer component={Paper}>
@@ -57,13 +58,15 @@ const UniversityList: React.FC = () => {
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Pavadinimas</TableCell>
+              <TableCell>Trumpas Pavadinimas</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {universities.map((university) => (
               <TableRow key={university.id}>
                 <TableCell>{university.id}</TableCell>
-                <TableCell>{university.name}</TableCell>
+                <TableCell>{university.pavadinimas}</TableCell>
+                <TableCell>{university.trumpasPavadinimas}</TableCell>
               </TableRow>
             ))}
           </TableBody>

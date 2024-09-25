@@ -21,10 +21,10 @@ namespace backas.Controllers
             _context = context;
         }
 
-        // Create a new group
         [HttpPost("create")]
         public async Task<IActionResult> CreateGroup([FromBody] GroupCreateRequest request)
         {
+            // Create the new group
             var newGroup = new Grupe
             {
                 Pavadinimas = request.Pavadinimas,
@@ -48,7 +48,19 @@ namespace backas.Controllers
             _context.Grupes.Add(newGroup);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Group created successfully.", groupId = newGroup.Id });
+            // Update the Seniunas to associate with the new group
+            var seniunas = await _context.Vartotojai.FindAsync(request.GrupesSeniunas);
+            if (seniunas != null)
+            {
+                seniunas.GrupeId = newGroup.Id;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                return NotFound("Seniunas not found.");
+            }
+
+            return Ok(new { message = "Group created successfully and Seniunas updated.", groupId = newGroup.Id });
         }
 
         // Get a group by ID
@@ -132,6 +144,36 @@ namespace backas.Controllers
             return Ok(new { message = "Group deleted successfully." });
         }
 
+        // Get group by user ID
+        [HttpGet("get-by-user/{userId}")]
+        public async Task<IActionResult> GetGroupByUserId(int userId)
+        {
+            // Find the user by ID
+            var user = await _context.Vartotojai
+                                .Include(u => u.Grupe)
+                                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Get the group associated with the user
+            var group = await _context.Grupes
+                                .Include(g => g.Universitetas)
+                                .Include(g => g.Fakultetas)
+                                .Include(g => g.Vartotojai)
+                                .FirstOrDefaultAsync(g => g.Id == user.GrupeId);
+
+            if (group == null)
+            {
+                return NotFound("Group not found.");
+            }
+
+            return Ok(group);
+        }
+
+
         [HttpPost("add-user-to-group")]
         public async Task<IActionResult> AddUserToGroup([FromForm] GroupUserRequest request)
         {
@@ -172,7 +214,7 @@ namespace backas.Controllers
                         PrisijungimoVardas = userRequest.ElPastas,  // Using email as username
                         Telefonas = userRequest.Telefonas,
                         VartotojoRole = "studentas",
-                        Slaptazodis = GenerateRandomPassword(),
+                        Slaptazodis = GenerateRandomPassword(userRequest.Vardas, userRequest.Pavarde),
                         FakultetasId = group.FakultetasId,
                         UniversitetasId = group.UniversitetasId,
                         GrupeId = group.Id
@@ -225,7 +267,7 @@ namespace backas.Controllers
                                 PrisijungimoVardas = email,
                                 Telefonas = phone,
                                 VartotojoRole = "studentas",
-                                Slaptazodis = GenerateRandomPassword(),
+                                Slaptazodis = GenerateRandomPassword(firstName, lastName),
                                 FakultetasId = group.FakultetasId,
                                 UniversitetasId = group.UniversitetasId,
                                 GrupeId = group.Id  // Associate user with the group
@@ -244,10 +286,10 @@ namespace backas.Controllers
             return users;
         }
 
-        private string GenerateRandomPassword()
+        private string GenerateRandomPassword(string vardas, string pavarde)
         {
             var random = new Random();
-            return $"Pass{random.Next(1000, 9999)}";
+            return $"{vardas}{pavarde}{random.Next(1000, 9999)}";
         }
 
         private void ScheduleReminderForIncompleteGroup(int groupId)
@@ -291,7 +333,7 @@ namespace backas.Controllers
         public string Pastabos { get; set; }
         public bool PatvirtintasSarasas { get; set; }
         public bool BalsavimasMaketai { get; set; }
-        public string GrupesSeniunas { get; set; }
+        public int GrupesSeniunas { get; set; }
         public string FotografavimoDataVieta { get; set; }
     }
 

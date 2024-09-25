@@ -21,6 +21,7 @@ import AddUniversity from '../pages/AddUniversity/AddUniversity';
 import UniversityList from '../pages/UniversityList/UniversityList';
 import FacultyList from '../pages/FacultyList/FacultyList';
 import GroupList from '../pages/GroupList/GroupList';
+import Logout from '../pages/Logout'
 
 
 const AppRouter = () => {
@@ -31,7 +32,7 @@ const AppRouter = () => {
       <Header /> {/* Include the Header component here */}
       <Routes>
         <Route path="/" element={<Home />} />
-        
+        <Route path="/logout" element={<Logout />} />
         {/* Super Administratorius Routes */}
         {role === 'super administratorius' && (
           <>

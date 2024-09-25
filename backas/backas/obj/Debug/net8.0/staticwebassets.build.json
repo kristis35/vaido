@@ -1,12 +1,11 @@
 {
   "Version": 1,
-  "Hash": "0MORTLNfg8eZ9Y/WNmlXgW3DWCCxMt9ENT/7xhWNZY8=",
+  "Hash": "2ite5NGO+7eNSqO07cel+/GIcd5iJahJPP+sCuhfzjQ=",
   "Source": "backas",
   "BasePath": "_content/backas",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "Assets": []
 }

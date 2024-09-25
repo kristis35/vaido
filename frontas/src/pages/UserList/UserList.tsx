@@ -11,23 +11,14 @@ import {
   Alert,
   Button,
   Box,
+  Typography,
+  Grid
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook from React Router
 import { getData } from '../../services/api/Axios'; // Import the axios helper function for GET requests
-
-interface User {
-  id: number;
-  prisijungimoVardas: string;
-  vardas: string;
-  pavarde: string;
-  telefonas: string;
-  fakultetas: string | null;
-  universitetas: string | null;
-  vartotojoRole: string;
-}
-
+import { Useris } from '../../interfaces';
 const UserList: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Useris[]>([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate(); // Initialize the useNavigate hook
 
@@ -35,7 +26,7 @@ const UserList: React.FC = () => {
     // Fetch users from the API when the component mounts
     const fetchUsers = async () => {
       try {
-        const userList = await getData<User[]>('/user/get-all-users');
+        const userList = await getData<Useris[]>('/user/get-all-users');
         setUsers(userList);
       } catch (error) {
         console.error('Nepavyko gauti vartotojų sąrašo:', error);
@@ -51,17 +42,20 @@ const UserList: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" style={{ paddingTop: '20px' }}>
+    <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
       {error && (
         <Alert severity="error" style={{ marginBottom: '16px' }}>
           {error}
         </Alert>
       )}
-      <Box display="flex" justifyContent="flex-end" marginBottom={2}>
+      <Grid container justifyContent="space-between" alignItems="center">
+        <Typography variant="h4" gutterBottom>
+          Vartotoju Sąrašas
+        </Typography>
         <Button variant="contained" color="primary" onClick={handleAddUserClick}>
           Pridėti Vartotoją
         </Button>
-      </Box>
+      </Grid>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
