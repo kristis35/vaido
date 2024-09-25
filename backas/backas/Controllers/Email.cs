@@ -1,50 +1,59 @@
-﻿using System;
-using System.Net;
-using System.Net.Mail;
-using Microsoft.Extensions.Configuration;
+﻿using MailKit.Net.Smtp;
+using MimeKit;
+using System;
 
-namespace backas.Controllers
+public interface IEmailService
 {
-    public interface IEmailService
+    void SendEmail(string toEmail, string subject, string body);
+}
+
+public class EmailService : IEmailService
+{
+    private readonly string _smtpServer;
+    private readonly int _smtpPort;
+    private readonly string _smtpUser;
+    private readonly string _smtpPass;
+    private readonly string _fromEmail;
+
+    public EmailService()
     {
-        void SendEmail(string toEmail, string subject, string body);
+        // Using the provided settings
+        _smtpServer = "smtp.hostinger.com";
+        _smtpPort = 465;
+        _smtpUser = "info@prixora.lt";
+        _smtpPass = "Pardavimas123+";
+        _fromEmail = "info@prixora.lt";
     }
 
-    public class EmailService : IEmailService
+    public void SendEmail(string toEmail, string subject, string body)
     {
-        private readonly IConfiguration _configuration;
-
-        public EmailService(IConfiguration configuration)
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("Prixora", _fromEmail));
+        message.To.Add(new MailboxAddress("Recipient", toEmail));
+        message.Subject = subject;
+        message.Body = new TextPart("plain")
         {
-            _configuration = configuration;
-        }
+            Text = body
+        };
 
-        public void SendEmail(string toEmail, string subject, string body)
+        using (var client = new SmtpClient())
         {
-            var fromEmail = _configuration["EmailSettings:FromEmail"];
-            var smtpServer = _configuration["EmailSettings:SmtpServer"];
-            var smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
-            var smtpUser = _configuration["EmailSettings:SmtpUser"];
-            var smtpPass = _configuration["EmailSettings:SmtpPass"];
-
-            var mail = new MailMessage
+            try
             {
-                From = new MailAddress(fromEmail),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = false
-            };
-            mail.To.Add(toEmail);
+                client.Connect(_smtpServer, _smtpPort, true); // Use SSL
 
-            var smtpClient = new SmtpClient(smtpServer, smtpPort)
+                // Authenticate with the SMTP server
+                client.Authenticate(_smtpUser, _smtpPass);
+
+                // Send the email
+                client.Send(message);
+                client.Disconnect(true);
+            }
+            catch (Exception ex)
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true,  // Ensure SSL is enabled for secure communication
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Timeout = 20000  // Optional: Set a timeout for the SMTP client
-            };
-
-            smtpClient.Send(mail);
+                // Log the detailed exception message
+                throw new Exception($"Failed to send email via SMTP: {ex.Message}", ex);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Table,
@@ -13,49 +13,43 @@ import {
   Grid,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import { getData } from '../../services/api/Axios';
+import { useNavigate } from 'react-router-dom'; 
+import { Group, University } from '../../interfaces';
 
-// Mock data for universities
-interface University {
-  id: number;
-  name: string;
-}
 
-const mockUniversities: University[] = [
-  { id: 1, name: 'Vilniaus Universitetas' },
-  { id: 2, name: 'Kauno Technologijos Universitetas' },
-  { id: 3, name: 'Vilniaus Gedimino Technikos Universitetas' },
-];
 
-// Mock data for groups
-interface Group {
-  id: number;
-  universityId: number;
-  faculty: string;
-  name: string;
-  yearOfEntry: number;
-  yearOfGraduation: number;
-}
-
-const mockGroups: Group[] = [
-  { id: 1, universityId: 1, faculty: 'Informatikos fakultetas', name: 'Kompiuterių Mokslai', yearOfEntry: 2018, yearOfGraduation: 2022 },
-  { id: 2, universityId: 2, faculty: 'Verslo administravimo fakultetas', name: 'Verslo Administravimas', yearOfEntry: 2019, yearOfGraduation: 2023 },
-  { id: 3, universityId: 3, faculty: 'Architektūros fakultetas', name: 'Architektūra', yearOfEntry: 2020, yearOfGraduation: 2024 },
-];
 
 const GroupList: React.FC = () => {
-  const [groups, setGroups] = useState<Group[]>(mockGroups);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const navigate = useNavigate(); // Initialize navigate
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await getData<Group[]>('/Group/get-all');
+        setGroups(response);
+      } catch (error) {
+        console.error('Failed to fetch groups:', error);
+      }
+    };
+
+    const fetchUniversities = async () => {
+      try {
+        const universityList = await getData<University[]>('/UniversityCrud/all');
+        setUniversities(universityList);
+      } catch (error) {
+        console.error('Failed to fetch universities:', error);
+      }
+    };
+
+    fetchGroups();
+    fetchUniversities();
+  }, []);
 
   const handleAddGroup = () => {
-    const newId = groups.length + 1;
-    const newGroup: Group = {
-      id: newId,
-      universityId: 1, // Default university for new group
-      faculty: 'Naujas fakultetas',
-      name: `Nauja Grupė ${newId}`,
-      yearOfEntry: 2021,
-      yearOfGraduation: 2025,
-    };
-    setGroups([...groups, newGroup]);
+    navigate('/addgroup'); // Navigate to the AddGroup page
   };
 
   return (
@@ -94,15 +88,15 @@ const GroupList: React.FC = () => {
             {groups.map((group) => (
               <TableRow key={group.id}>
                 <TableCell>{group.id}</TableCell>
-                <TableCell>{group.name}</TableCell>
-                <TableCell>{group.faculty}</TableCell>
+                <TableCell>{group.pavadinimas}</TableCell>
+                <TableCell>{group.ilgasPavadinimas}</TableCell>
                 <TableCell>
-                  {mockUniversities.find(
-                    (university) => university.id === group.universityId
-                  )?.name}
+                  {universities.find(
+                    (university) => university.id === group.universitetasId
+                  )?.pavadinimas}
                 </TableCell>
-                <TableCell>{group.yearOfEntry}</TableCell>
-                <TableCell>{group.yearOfGraduation}</TableCell>
+                <TableCell>{group.įstojimoMetai}</TableCell>
+                <TableCell>{group.baigimoMetai}</TableCell>
               </TableRow>
             ))}
           </TableBody>

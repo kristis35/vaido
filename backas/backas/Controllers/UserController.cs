@@ -79,8 +79,17 @@ namespace backas.Controllers
             // Send an email with the login credentials
             try
             {
-                var subject = "Your Account Details";
-                var body = $"Dear {newUser.Vardas},\n\nYour account has been created successfully.\nUsername: {newUser.PrisijungimoVardas}\nPassword: {generatedPassword}\n\nPlease change your password upon first login.";
+                var subject = "Prisijungimo duomenys prie vinjetes.lt sistemos";
+                var body = $@"
+            Laba diena.
+
+            Siunčiame prisijungimo prie vinjetes.lt sistemos duomenis.
+
+            Prisijungimo vardas: {newUser.PrisijungimoVardas}
+            Slaptažodis: {generatedPassword}
+
+            Kviečiame prisijungti ir užpildyti savo grupiokų sąrašą.";
+
                 _emailService.SendEmail(newUser.PrisijungimoVardas, subject, body);
             }
             catch (Exception ex)
@@ -96,8 +105,6 @@ namespace backas.Controllers
                 password = generatedPassword
             });
         }
-
-
 
         [HttpGet("get-user/{id}")]
         public async Task<IActionResult> GetUserById(int id)
@@ -203,5 +210,83 @@ namespace backas.Controllers
             // Return the list of users in the response
             return Ok(users);
         }
+
+        [HttpGet("get-users-by-group/{groupId}")]
+        public async Task<IActionResult> GetUsersByGroupId(int groupId)
+        {
+            // Fetch users who belong to the specified group ID
+            var users = await _context.Vartotojai
+                            .Where(u => u.GrupeId == groupId)  // Filter users by group ID
+                            .Include(u => u.Universitetas)  // Optionally include related data
+                            .Include(u => u.Fakultetas)     // Optionally include related data
+                            .Select(u => new
+                            {
+                                u.Id,
+                                u.PrisijungimoVardas,
+                                u.Vardas,
+                                u.Pavarde,
+                                u.Telefonas,
+                                u.VartotojoRole,
+                                Universitetas = u.Universitetas != null ? u.Universitetas.Pavadinimas : null,  // Null-safe navigation
+                                Fakultetas = u.Fakultetas != null ? u.Fakultetas.Pavadinimas : null             // Null-safe navigation
+                            })
+                            .ToListAsync();
+
+            // Check if any users were found
+            if (users == null || users.Count == 0)
+            {
+                return NotFound("No users found in this group.");
+            }
+
+            // Return the list of users in the response
+            return Ok(users);
+        }
+
+        [HttpDelete("delete-user/{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            // Fetch the user from the database
+            var user = await _context.Vartotojai.FindAsync(id);
+
+            // Check if the user exists
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Remove the user from the database
+            _context.Vartotojai.Remove(user);
+            await _context.SaveChangesAsync();
+
+            // Return a success response
+            return Ok(new { message = "User deleted successfully." });
+        }
+
+        [HttpPut("remove-user-from-group/{userId}")]
+        public async Task<IActionResult> RemoveUserFromGroup(int userId)
+        {
+            // Fetch the user from the database
+            var user = await _context.Vartotojai.FindAsync(userId);
+
+            // Check if the user exists
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Check if the user is associated with a group
+            if (user.GrupeId == null)
+            {
+                return BadRequest("User is not associated with any group.");
+            }
+
+            // Remove the user from the group
+            user.GrupeId = null;
+            await _context.SaveChangesAsync();
+
+            // Return a success response
+            return Ok(new { message = "User removed from group successfully." });
+        }
+
     }
 }

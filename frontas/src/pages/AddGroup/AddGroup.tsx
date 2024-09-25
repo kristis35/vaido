@@ -1,62 +1,111 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   TextField,
   Button,
-  IconButton,
   Grid,
   Paper,
   Alert,
   Box,
-  Typography,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
 } from '@mui/material';
-import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material';
-
-interface Group {
-  faculty: string;
-  university: string;
-  yearOfEntry: string;
-  yearOfGraduation: string;
-  elder: string;
-  memberCount: number;
-}
-
-const faculties = ['Engineering', 'Arts', 'Sciences', 'Law'];
-const universities = ['Vilnius University', 'Kaunas University of Technology', 'Lithuanian University of Health Sciences'];
+import { Faculty, University, Group, Useris } from '../../interfaces'; // Adjust the import path as necessary
+import { getData, postData } from '../../services/api/Axios'; // Adjust the import path as necessary
 
 const AddGroupForm: React.FC = () => {
-  const [groups, setGroups] = useState<Group[]>([
-    { faculty: '', university: '', yearOfEntry: '', yearOfGraduation: '', elder: '', memberCount: 0 },
-  ]);
+  const [group, setGroup] = useState<Group>({
+    id: 0,
+    pavadinimas: '',
+    ilgasPavadinimas: '',
+    universitetasId: 0,
+    fakultetasId: 0,
+    įstojimoMetai: 0,
+    baigimoMetai: 0,
+    studentuSkaicius: 0,
+    sumoketasAvansas: 0,
+    apmokejimoStadija: '',
+    gamybosStadija: '',
+    pasleptiGrupe: false,
+    pastabos: '',
+    patvirtintasSarasas: false,
+    balsavimasMaketai: false,
+    grupesSeniunas: '',  // Changed to string
+    fotografavimoDataVieta: '',
+  });
+
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [seniunai, setSeniunai] = useState<Useris[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleInputChange = (index: number, field: keyof Group, value: string | number) => {
-    const newGroups = [...groups];
-    newGroups[index] = { ...newGroups[index], [field]: value };
-    setGroups(newGroups);
+  useEffect(() => {
+    const fetchFacultiesAndUniversitiesAndSeniunai = async () => {
+      try {
+        const facultyList = await getData<Faculty[]>('/Fakultetas/all');
+        setFaculties(facultyList);
+
+        const universityList = await getData<University[]>('/UniversityCrud/all');
+        setUniversities(universityList);
+
+        const seniunaiList = await getData<Useris[]>('/User/get-all-users');
+        setSeniunai(seniunaiList.filter(user => user.vartotojoRole === 'seniunas'));
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    fetchFacultiesAndUniversitiesAndSeniunai();
+  }, []);
+
+  const handleInputChange = (field: keyof Group, value: any) => {
+    setGroup({ ...group, [field]: value });
   };
 
-  const handleAddGroup = () => {
-    setGroups([...groups, { faculty: '', university: '', yearOfEntry: '', yearOfGraduation: '', elder: '', memberCount: 0 }]);
-  };
-
-  const handleRemoveGroup = (index: number) => {
-    const newGroups = groups.filter((_, i) => i !== index);
-    setGroups(newGroups);
-  };
-
-  const handleSave = () => {
-    const hasIncompleteFields = groups.some(group => !group.faculty || !group.university || !group.yearOfEntry || !group.yearOfGraduation || !group.elder);
-    if (hasIncompleteFields) {
+  const handleSave = async () => {
+    if (
+      !group.pavadinimas ||
+      !group.ilgasPavadinimas ||
+      !group.universitetasId ||
+      !group.fakultetasId ||
+      !group.įstojimoMetai ||
+      !group.baigimoMetai ||
+      !group.grupesSeniunas
+    ) {
       setError('Prašome užpildyti visus privalomus laukus.');
     } else {
       setError(null);
-      console.log('Grupės išsaugotos:', groups);
-      // Implement save logic here
+      try {
+        await postData('/Group/create', group);
+        setSuccessMessage('Grupė sėkmingai išsaugota!');
+        console.log('Grupė išsaugota:', group);
+
+        // Reset the form after a successful save
+        setGroup({
+          id: 0,
+          pavadinimas: '',
+          ilgasPavadinimas: '',
+          universitetasId: 0,
+          fakultetasId: 0,
+          įstojimoMetai: 0,
+          baigimoMetai: 0,
+          studentuSkaicius: 0,
+          sumoketasAvansas: 0,
+          apmokejimoStadija: '',
+          gamybosStadija: '',
+          pasleptiGrupe: false,
+          pastabos: '',
+          patvirtintasSarasas: false,
+          balsavimasMaketai: false,
+          grupesSeniunas: '',
+          fotografavimoDataVieta: '',
+        });
+      } catch (error) {
+        console.error('Failed to save group:', error);
+      }
     }
   };
 
@@ -68,100 +117,111 @@ const AddGroupForm: React.FC = () => {
         </Alert>
       )}
 
-      {groups.map((group, index) => (
-        <Paper key={index} elevation={3} style={{ padding: 16, marginTop: 16 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Fakultetas</InputLabel>
-                <Select
-                  value={group.faculty}
-                  onChange={(e) => handleInputChange(index, 'faculty', e.target.value)}
-                  required
-                >
-                  {faculties.map((faculty, i) => (
-                    <MenuItem key={i} value={faculty}>
-                      {faculty}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Universitetas</InputLabel>
-                <Select
-                  value={group.university}
-                  onChange={(e) => handleInputChange(index, 'university', e.target.value)}
-                  required
-                >
-                  {universities.map((university, i) => (
-                    <MenuItem key={i} value={university}>
-                      {university}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Įstojimo Metai"
-                value={group.yearOfEntry}
-                onChange={(e) => handleInputChange(index, 'yearOfEntry', e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Baigimo Metai"
-                value={group.yearOfGraduation}
-                onChange={(e) => handleInputChange(index, 'yearOfGraduation', e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Grupės Seniūnas"
-                value={group.elder}
-                onChange={(e) => handleInputChange(index, 'elder', e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Narių Skaičius"
-                type="number"
-                value={group.memberCount}
-                onChange={(e) => handleInputChange(index, 'memberCount', parseInt(e.target.value))}
-              />
-            </Grid>
-            <Grid item xs={12} style={{ textAlign: 'right' }}>
-              {groups.length > 1 && (
-                <IconButton
-                  onClick={() => handleRemoveGroup(index)}
-                  color="secondary"
-                  aria-label="Pašalinti Grupę"
-                >
-                  <RemoveCircleOutline />
-                </IconButton>
-              )}
-              {index === groups.length - 1 && (
-                <IconButton
-                  onClick={handleAddGroup}
-                  color="primary"
-                  aria-label="Pridėti Grupę"
-                >
-                  <AddCircleOutline />
-                </IconButton>
-              )}
-            </Grid>
+      {successMessage && (
+        <Box marginBottom={2}>
+          <Alert severity="success">{successMessage}</Alert>
+        </Box>
+      )}
+
+      <Paper elevation={3} style={{ padding: 16, marginTop: 16 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Pavadinimas"
+              value={group.pavadinimas}
+              onChange={(e) => handleInputChange('pavadinimas', e.target.value)}
+              required
+            />
           </Grid>
-        </Paper>
-      ))}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Ilgas Pavadinimas"
+              value={group.ilgasPavadinimas}
+              onChange={(e) => handleInputChange('ilgasPavadinimas', e.target.value)}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Universitetas</InputLabel>
+              <Select
+                value={group.universitetasId}
+                onChange={(e) => handleInputChange('universitetasId', e.target.value)}
+                required
+              >
+                {universities.map((university) => (
+                  <MenuItem key={university.id} value={university.id}>
+                    {university.pavadinimas}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Fakultetas</InputLabel>
+              <Select
+                value={group.fakultetasId}
+                onChange={(e) => handleInputChange('fakultetasId', e.target.value)}
+                required
+              >
+                {faculties.map((faculty) => (
+                  <MenuItem key={faculty.id} value={faculty.id}>
+                    {faculty.pavadinimas}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Įstojimo Metai"
+              type="number"
+              value={group.įstojimoMetai}
+              onChange={(e) => handleInputChange('įstojimoMetai', parseInt(e.target.value))}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Baigimo Metai"
+              type="number"
+              value={group.baigimoMetai}
+              onChange={(e) => handleInputChange('baigimoMetai', parseInt(e.target.value))}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Grupės Seniūnas</InputLabel>
+              <Select
+                value={group.grupesSeniunas}
+                onChange={(e) => handleInputChange('grupesSeniunas', e.target.value)}
+                required
+              >
+                {seniunai.map((seniunas) => (
+                  <MenuItem key={seniunas.id} value={String(seniunas.id)}>
+                    {`${seniunas.vardas} ${seniunas.pavarde}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Narių Skaičius"
+              type="number"
+              value={group.studentuSkaicius}
+              onChange={(e) => handleInputChange('studentuSkaicius', parseInt(e.target.value))}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
 
       <Box mt={4}>
         <Button

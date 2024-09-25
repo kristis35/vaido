@@ -45,9 +45,11 @@ namespace backas.Controllers
             return Ok(new
             {
                 message = "Login successful",
-                token = token
+                token = token,
+                userId = user.Id  // Return the user ID
             });
         }
+
 
         private string GenerateJwtToken(Vartotojai user)
         {

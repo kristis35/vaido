@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Avatar, Button, TextField, FormControlLabel, Checkbox, Link, Grid, Box, Typography, Container } from '@mui/material';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate} from 'react-router-dom';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useAuth } from '../../services/api/Context';
@@ -16,36 +16,29 @@ interface JwtPayload {
 
 function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const { setRole } = useAuth();
+  const navigate = useNavigate(); 
+  const { setRole, setUserId } = useAuth(); // Destructure setUserId from useAuth
+
   const handleRoleBasedRedirect = (role: JwtPayload['role']) => {
     switch (role) {
       case 'super administratorius':
-        <Navigate to="/user_list" />
-        break;
       case 'administratoriust':
-        console.log('Redirecting to Admin dashboard');
-        // Logic to redirect to Admin dashboard
+        navigate('/userlist');
         break;
       case 'studentas':
         console.log('Redirecting to Student dashboard');
-        // Logic to redirect to Student dashboard
         break;
       case 'seniunas':
-        console.log('Redirecting to Seniunas dashboard');
-        // Logic to redirect to Seniunas dashboard
+        navigate("/adduserlist");
         break;
       case 'fotolaboratorija':
         console.log('Redirecting to Fotolaboratorija dashboard');
-        // Logic to redirect to Fotolaboratorija dashboard
         break;
       case 'maketuotojas':
         console.log('Redirecting to Maketuotojas dashboard');
-        // Logic to redirect to Maketuotojas dashboard
         break;
       case 'fotografas':
         console.log('Redirecting to Fotografas dashboard');
-        // Logic to redirect to Fotografas dashboard
         break;
       default:
         console.log('Role not recognized');
@@ -72,13 +65,16 @@ function LoginPage() {
       if (response.ok) {
         const result = await response.json();
         const token = result.token;
+        const userId = result.userId; // Extract userId from the response
+
         localStorage.setItem('jwtToken', token);
-  
+
         const decodedToken: JwtPayload = jwtDecode<JwtPayload>(token);
         setRole(decodedToken.role); // Set the role in the context
-  
+        setUserId(userId); // Store the user ID in the context
+
         handleRoleBasedRedirect(decodedToken.role);
-      }  else {
+      } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message || 'Login failed');
       }
@@ -140,11 +136,6 @@ function LoginPage() {
               Sign In
             </Button>
           </Box>
-          {userRole && (
-            <Typography variant="body2" sx={{ mt: 2 }}>
-              Logged in as: {userRole}
-            </Typography>
-          )}
         </Box>
       </Container>
     </ThemeProvider>

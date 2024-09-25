@@ -176,9 +176,15 @@ namespace backas
         public string Pavadinimas { get; set; }  // Short name
         public string IlgasPavadinimas { get; set; }  // Long name
         public int UniversitetasId { get; set; }  // Foreign key to Universitetas
+
+        [JsonIgnore]  // Prevents serialization loop
         public Universitetas Universitetas { get; set; }  // Navigation property for Universitetas
+
         public int FakultetasId { get; set; }  // Foreign key to Fakultetas
+
+        [JsonIgnore]  // Prevents serialization loop
         public Fakultetas Fakultetas { get; set; }  // Navigation property for Fakultetas
+
         public int ĮstojimoMetai { get; set; }  // Enrollment year
         public int BaigimoMetai { get; set; }  // Graduation year
         public int StudentuSkaicius { get; set; }  // Number of students
@@ -189,11 +195,9 @@ namespace backas
         public string Pastabos { get; set; }  // Notes
         public bool PatvirtintasSarasas { get; set; }  // Approved group list
         public bool BalsavimasMaketai { get; set; }  // Voting on layouts started
-        public string GrupesSeniunas { get; set; }  // Group senior
+        public int GrupesSeniunas { get; set; }  // Group senior
         public string FotografavimoDataVieta { get; set; }  // Photography date and location
-
-        // **New**: Navigation property for related Vartotojai
+        [JsonIgnore]
         public ICollection<Vartotojai> Vartotojai { get; set; }
     }
-
 }

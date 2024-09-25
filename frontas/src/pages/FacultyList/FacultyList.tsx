@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Table,
@@ -13,43 +13,32 @@ import {
   Grid,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
-
-// Mock data for universities
-interface University {
-  id: number;
-  name: string;
-}
-
-const mockUniversities: University[] = [
-  { id: 1, name: 'Vilniaus Universitetas' },
-  { id: 2, name: 'Kauno Technologijos Universitetas' },
-  { id: 3, name: 'Vilniaus Gedimino Technikos Universitetas' },
-];
-
-// Mock data for faculties
-interface Faculty {
-  id: number;
-  universityId: number;
-  name: string;
-}
-
-const mockFaculties: Faculty[] = [
-  { id: 1, universityId: 1, name: 'Informatikos fakultetas' },
-  { id: 2, universityId: 2, name: 'Verslo administravimo fakultetas' },
-  { id: 3, universityId: 3, name: 'Architektūros fakultetas' },
-];
+import { getData } from '../../services/api/Axios'; // Import your Axios helper
+import { Faculty, University } from '../../interfaces';
 
 const FacultyList: React.FC = () => {
-  const [faculties, setFaculties] = useState<Faculty[]>(mockFaculties);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [universities, setUniversities] = useState<University[]>([]);
+
+  // Fetch faculties and universities data from the API
+  useEffect(() => {
+    const fetchFacultiesAndUniversities = async () => {
+      try {
+        const facultyList = await getData<Faculty[]>('/Fakultetas/all');
+        setFaculties(facultyList);
+
+        const universityList = await getData<University[]>('/UniversityCrud/all');
+        setUniversities(universityList);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    fetchFacultiesAndUniversities();
+  }, []);
 
   const handleAddFaculty = () => {
-    const newId = faculties.length + 1;
-    const newFaculty: Faculty = {
-      id: newId,
-      universityId: 1, // Default university for new faculty
-      name: `Naujas Fakultetas ${newId}`,
-    };
-    setFaculties([...faculties, newFaculty]);
+    // This function could be used to add a new faculty.
   };
 
   return (
@@ -62,7 +51,7 @@ const FacultyList: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         startIcon={<Add />}
@@ -70,7 +59,7 @@ const FacultyList: React.FC = () => {
         style={{ marginBottom: '20px' }}
       >
         Pridėti Fakultetą
-      </Button>
+      </Button> */}
 
       <TableContainer component={Paper}>
         <Table>
@@ -78,21 +67,13 @@ const FacultyList: React.FC = () => {
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Fakultetas</TableCell>
-              <TableCell>Universitetas</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {faculties.map((faculty) => (
               <TableRow key={faculty.id}>
                 <TableCell>{faculty.id}</TableCell>
-                <TableCell>{faculty.name}</TableCell>
-                <TableCell>
-                  {
-                    mockUniversities.find(
-                      (university) => university.id === faculty.universityId
-                    )?.name
-                  }
-                </TableCell>
+                <TableCell>{faculty.pavadinimas}</TableCell>
               </TableRow>
             ))}
           </TableBody>
