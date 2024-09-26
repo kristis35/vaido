@@ -11,7 +11,7 @@ import EditorPage from '../pages/EditorPage/EditorPage';
 import UserVignettes from '../pages/UserVignettes/UserVignettes';
 import AdminOrders from '../pages/AdminOrders/AdminOrders';
 import AdminList from '../pages/AdminList/AdminList';
-import EditGroup from '../pages/EditGroup/EditGroup';
+import EditGroupForm from '../pages/EditGroup/EditGroupForm';
 import { useAuth } from '../services/api/Context';
 import VotingPage from '../pages/VotingPage/VotingPage';
 import UserList from '../pages/UserList/UserList';
@@ -22,6 +22,7 @@ import UniversityList from '../pages/UniversityList/UniversityList';
 import FacultyList from '../pages/FacultyList/FacultyList';
 import GroupList from '../pages/GroupList/GroupList';
 import Logout from '../pages/Logout'
+import EditUser from '../pages/EditUser/EditUser';
 
 
 const AppRouter = () => {
@@ -38,9 +39,10 @@ const AppRouter = () => {
           <>
             <Route path="/addmaster" element={<AddMaster />} />
             <Route path="/userlist" element={<UserList />} />
+            <Route path="/edituser/:userId" element={<EditUser />} />
             <Route path="/adminorders" element={<AdminOrders />} />
             <Route path="/adminlist" element={<AdminList />} />
-            <Route path="/editgroup" element={<EditGroup />} />
+            <Route path="/editgroup/:groupId" element={<EditGroupForm />} />
             <Route path="/votingpage" element={<VotingPage />} />
             <Route path="/editorspage" element={<EditorPage />} />
             <Route path="/uservignettes" element={<UserVignettes />} />
@@ -67,7 +69,10 @@ const AppRouter = () => {
 
         {/* Seniunas Routes */}
         {role === 'seniunas' && (
+          <>
           <Route path="/adduserlist" element={<AddUserList />} />
+          <Route path="/addgroup" element={<AddGroup />} />
+          </>
         )}
       </Routes>
     </Router>

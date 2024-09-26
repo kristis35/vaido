@@ -25,34 +25,34 @@ namespace backas.Controllers
         public async Task<IActionResult> CreateGroup([FromBody] GroupCreateRequest request)
         {
             // Create the new group
-            var newGroup = new Grupe
+            var newGroup = new grupe
             {
                 Pavadinimas = request.Pavadinimas,
                 IlgasPavadinimas = request.IlgasPavadinimas,
-                UniversitetasId = request.UniversitetasId,
-                FakultetasId = request.FakultetasId,
+                universitetasId = request.universitetasId,
+                fakultetasId = request.fakultetasId,
                 ĮstojimoMetai = request.ĮstojimoMetai,
                 BaigimoMetai = request.BaigimoMetai,
                 StudentuSkaicius = request.StudentuSkaicius,
                 SumoketasAvansas = request.SumoketasAvansas,
                 ApmokejimoStadija = request.ApmokejimoStadija,
                 GamybosStadija = request.GamybosStadija,
-                PasleptiGrupe = request.PasleptiGrupe,
+                Pasleptigrupe = request.Pasleptigrupe,
                 Pastabos = request.Pastabos,
                 PatvirtintasSarasas = request.PatvirtintasSarasas,
                 BalsavimasMaketai = request.BalsavimasMaketai,
-                GrupesSeniunas = request.GrupesSeniunas,
+                grupesSeniunas = request.grupesSeniunas,
                 FotografavimoDataVieta = request.FotografavimoDataVieta
             };
 
-            _context.Grupes.Add(newGroup);
+            _context.grupes.Add(newGroup);
             await _context.SaveChangesAsync();
 
             // Update the Seniunas to associate with the new group
-            var seniunas = await _context.Vartotojai.FindAsync(request.GrupesSeniunas);
+            var seniunas = await _context.vartotojai.FindAsync(request.grupesSeniunas);
             if (seniunas != null)
             {
-                seniunas.GrupeId = newGroup.Id;
+                seniunas.grupeId = newGroup.Id;
                 await _context.SaveChangesAsync();
             }
             else
@@ -67,10 +67,10 @@ namespace backas.Controllers
         [HttpGet("get/{id}")]
         public async Task<IActionResult> GetGroupById(int id)
         {
-            var group = await _context.Grupes
-                            .Include(g => g.Universitetas)
-                            .Include(g => g.Fakultetas)
-                            .Include(g => g.Vartotojai)
+            var group = await _context.grupes
+                            .Include(g => g.universitetas)
+                            .Include(g => g.fakultetas)
+                            .Include(g => g.vartotojai)
                             .FirstOrDefaultAsync(g => g.Id == id);
 
             if (group == null)
@@ -85,10 +85,10 @@ namespace backas.Controllers
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllGroups()
         {
-            var groups = await _context.Grupes
-                            .Include(g => g.Universitetas)
-                            .Include(g => g.Fakultetas)
-                            .Include(g => g.Vartotojai)
+            var groups = await _context.grupes
+                            .Include(g => g.universitetas)
+                            .Include(g => g.fakultetas)
+                            .Include(g => g.vartotojai)
                             .ToListAsync();
 
             return Ok(groups);
@@ -98,7 +98,7 @@ namespace backas.Controllers
         [HttpPut("edit/{id}")]
         public async Task<IActionResult> EditGroup(int id, [FromBody] GroupEditRequest request)
         {
-            var group = await _context.Grupes.FindAsync(id);
+            var group = await _context.grupes.FindAsync(id);
 
             if (group == null)
             {
@@ -107,19 +107,19 @@ namespace backas.Controllers
 
             group.Pavadinimas = request.Pavadinimas;
             group.IlgasPavadinimas = request.IlgasPavadinimas;
-            group.UniversitetasId = request.UniversitetasId;
-            group.FakultetasId = request.FakultetasId;
+            group.universitetasId = request.universitetasId;
+            group.fakultetasId = request.fakultetasId;
             group.ĮstojimoMetai = request.ĮstojimoMetai;
             group.BaigimoMetai = request.BaigimoMetai;
             group.StudentuSkaicius = request.StudentuSkaicius;
             group.SumoketasAvansas = request.SumoketasAvansas;
             group.ApmokejimoStadija = request.ApmokejimoStadija;
             group.GamybosStadija = request.GamybosStadija;
-            group.PasleptiGrupe = request.PasleptiGrupe;
+            group.Pasleptigrupe = request.Pasleptigrupe;
             group.Pastabos = request.Pastabos;
             group.PatvirtintasSarasas = request.PatvirtintasSarasas;
             group.BalsavimasMaketai = request.BalsavimasMaketai;
-            group.GrupesSeniunas = request.GrupesSeniunas;
+            group.grupesSeniunas = request.grupesSeniunas;
             group.FotografavimoDataVieta = request.FotografavimoDataVieta;
 
             await _context.SaveChangesAsync();
@@ -131,14 +131,14 @@ namespace backas.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteGroup(int id)
         {
-            var group = await _context.Grupes.FindAsync(id);
+            var group = await _context.grupes.FindAsync(id);
 
             if (group == null)
             {
                 return NotFound("Group not found.");
             }
 
-            _context.Grupes.Remove(group);
+            _context.grupes.Remove(group);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Group deleted successfully." });
@@ -149,8 +149,8 @@ namespace backas.Controllers
         public async Task<IActionResult> GetGroupByUserId(int userId)
         {
             // Find the user by ID
-            var user = await _context.Vartotojai
-                                .Include(u => u.Grupe)
+            var user = await _context.vartotojai
+                                .Include(u => u.grupe)
                                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
@@ -159,11 +159,11 @@ namespace backas.Controllers
             }
 
             // Get the group associated with the user
-            var group = await _context.Grupes
-                                .Include(g => g.Universitetas)
-                                .Include(g => g.Fakultetas)
-                                .Include(g => g.Vartotojai)
-                                .FirstOrDefaultAsync(g => g.Id == user.GrupeId);
+            var group = await _context.grupes
+                                .Include(g => g.universitetas)
+                                .Include(g => g.fakultetas)
+                                .Include(g => g.vartotojai)
+                                .FirstOrDefaultAsync(g => g.Id == user.grupeId);
 
             if (group == null)
             {
@@ -178,8 +178,8 @@ namespace backas.Controllers
         public async Task<IActionResult> AddUserToGroup([FromForm] GroupUserRequest request)
         {
             // Check if group exists
-            var group = await _context.Grupes
-                            .Include(g => g.Vartotojai)
+            var group = await _context.grupes
+                            .Include(g => g.vartotojai)
                             .FirstOrDefaultAsync(g => g.Id == request.GroupId);
 
             if (group == null)
@@ -191,7 +191,7 @@ namespace backas.Controllers
             if (request.ExcelFile != null && request.ExcelFile.Length > 0)
             {
                 // Process the Excel file
-                List<Vartotojai> users = ParseExcelFile(request.ExcelFile, group);
+                List<vartotojai> users = ParseExcelFile(request.ExcelFile, group);
                 if (users == null)
                 {
                     return BadRequest("Invalid Excel file format.");
@@ -199,7 +199,7 @@ namespace backas.Controllers
 
                 foreach (var user in users)
                 {
-                    _context.Vartotojai.Add(user);
+                    _context.vartotojai.Add(user);
                 }
             }
             else if (request.Users != null && request.Users.Count > 0)
@@ -207,7 +207,7 @@ namespace backas.Controllers
                 // Handling manual user input
                 foreach (var userRequest in request.Users)
                 {
-                    var user = new Vartotojai
+                    var user = new vartotojai
                     {
                         Vardas = userRequest.Vardas,
                         Pavarde = userRequest.Pavarde,
@@ -215,12 +215,12 @@ namespace backas.Controllers
                         Telefonas = userRequest.Telefonas,
                         VartotojoRole = "studentas",
                         Slaptazodis = GenerateRandomPassword(userRequest.Vardas, userRequest.Pavarde),
-                        FakultetasId = group.FakultetasId,
-                        UniversitetasId = group.UniversitetasId,
-                        GrupeId = group.Id
+                        fakultetasId = group.fakultetasId,
+                        universitetasId = group.universitetasId,
+                        grupeId = group.Id
                     };
 
-                    _context.Vartotojai.Add(user);
+                    _context.vartotojai.Add(user);
                 }
             }
             else
@@ -232,7 +232,7 @@ namespace backas.Controllers
             await _context.SaveChangesAsync();
 
             // Schedule reminder if not all users have emails filled
-            if (group.Vartotojai.Any(u => string.IsNullOrEmpty(u.PrisijungimoVardas)))
+            if (group.vartotojai.Any(u => string.IsNullOrEmpty(u.PrisijungimoVardas)))
             {
                 ScheduleReminderForIncompleteGroup(group.Id);
             }
@@ -240,9 +240,13 @@ namespace backas.Controllers
             return Ok(new { message = "Users added to the group successfully." });
         }
 
-        private List<Vartotojai> ParseExcelFile(IFormFile excelFile, Grupe group)
+        private List<vartotojai> ParseExcelFile(IFormFile excelFile, grupe group)
         {
-            List<Vartotojai> users = new List<Vartotojai>();
+            List<vartotojai> users = new List<vartotojai>();
+
+            // Set the license context
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             using (var stream = new MemoryStream())
             {
                 excelFile.CopyTo(stream);
@@ -251,7 +255,7 @@ namespace backas.Controllers
                     var worksheet = package.Workbook.Worksheets[0];
                     int rowCount = worksheet.Dimension.Rows;
 
-                    for (int row = 2; row <= rowCount; row++)  // Skip header row
+                    for (int row = 1; row <= rowCount; row++)  // Skip header row
                     {
                         try
                         {
@@ -260,7 +264,7 @@ namespace backas.Controllers
                             var email = worksheet.Cells[row, 4].Text;
                             var phone = worksheet.Cells[row, 5].Text;
 
-                            var user = new Vartotojai
+                            var user = new vartotojai
                             {
                                 Vardas = firstName,
                                 Pavarde = lastName,
@@ -268,9 +272,9 @@ namespace backas.Controllers
                                 Telefonas = phone,
                                 VartotojoRole = "studentas",
                                 Slaptazodis = GenerateRandomPassword(firstName, lastName),
-                                FakultetasId = group.FakultetasId,
-                                UniversitetasId = group.UniversitetasId,
-                                GrupeId = group.Id  // Associate user with the group
+                                fakultetasId = group.fakultetasId,
+                                universitetasId = group.universitetasId,
+                                grupeId = group.Id  // Associate user with the group
                             };
 
                             users.Add(user);
@@ -285,6 +289,7 @@ namespace backas.Controllers
 
             return users;
         }
+
 
         private string GenerateRandomPassword(string vardas, string pavarde)
         {
@@ -307,7 +312,7 @@ namespace backas.Controllers
         public IFormFile? ExcelFile { get; set; }  // Excel file for bulk upload, optional
 
         [FromForm]
-        public List<UserRequest> Users { get; set; }  // For manual input
+        public List<UserRequest> ?Users { get; set; }  // For manual input
     }
 
     public class UserRequest
@@ -321,19 +326,19 @@ namespace backas.Controllers
     {
         public string Pavadinimas { get; set; }
         public string IlgasPavadinimas { get; set; }
-        public int UniversitetasId { get; set; }
-        public int FakultetasId { get; set; }
+        public int universitetasId { get; set; }
+        public int fakultetasId { get; set; }
         public int ĮstojimoMetai { get; set; }
         public int BaigimoMetai { get; set; }
         public int StudentuSkaicius { get; set; }
         public decimal SumoketasAvansas { get; set; }
         public string ApmokejimoStadija { get; set; }
         public string GamybosStadija { get; set; }
-        public bool PasleptiGrupe { get; set; }
+        public bool Pasleptigrupe { get; set; }
         public string Pastabos { get; set; }
         public bool PatvirtintasSarasas { get; set; }
         public bool BalsavimasMaketai { get; set; }
-        public int GrupesSeniunas { get; set; }
+        public int grupesSeniunas { get; set; }
         public string FotografavimoDataVieta { get; set; }
     }
 

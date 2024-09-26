@@ -29,26 +29,26 @@ namespace backas.Controllers
             }
 
             // Check if user already exists
-            var existingUser = await _context.Vartotojai.FirstOrDefaultAsync(u => u.PrisijungimoVardas == request.PrisijungimoVardas);
+            var existingUser = await _context.vartotojai.FirstOrDefaultAsync(u => u.PrisijungimoVardas == request.PrisijungimoVardas);
             if (existingUser != null)
             {
                 return Conflict("A user with this username already exists.");
             }
 
-            // Optional: Check if the specified university exists (only if UniversitetasId is provided)
-            if (request.UniversitetasId.HasValue)
+            // Optional: Check if the specified university exists (only if universitetasId is provided)
+            if (request.universitetasId.HasValue)
             {
-                var universitetas = await _context.Universitetai.FindAsync(request.UniversitetasId);
+                var universitetas = await _context.universitetai.FindAsync(request.universitetasId);
                 if (universitetas == null)
                 {
                     return NotFound("University not found.");
                 }
             }
 
-            // Optional: Check if the specified faculty exists (only if FakultetasId is provided)
-            if (request.FakultetasId.HasValue)
+            // Optional: Check if the specified faculty exists (only if fakultetasId is provided)
+            if (request.fakultetasId.HasValue)
             {
-                var fakultetas = await _context.Fakultetai.FindAsync(request.FakultetasId);
+                var fakultetas = await _context.fakultetai.FindAsync(request.fakultetasId);
                 if (fakultetas == null)
                 {
                     return NotFound("Faculty not found.");
@@ -60,20 +60,20 @@ namespace backas.Controllers
             string generatedPassword = $"{request.Vardas}{request.Pavarde}{random.Next(1000, 9999)}";
 
             // Create the new user
-            var newUser = new Vartotojai
+            var newUser = new vartotojai
             {
                 PrisijungimoVardas = request.PrisijungimoVardas,
                 Vardas = request.Vardas,
                 Pavarde = request.Pavarde,
                 Telefonas = request.Telefonas,
                 VartotojoRole = request.VartotojoRole,
-                UniversitetasId = request.UniversitetasId,  // This will remain null if not provided
-                FakultetasId = request.FakultetasId,  // This will remain null if not provided
+                universitetasId = request.universitetasId,  // This will remain null if not provided
+                fakultetasId = request.fakultetasId,  // This will remain null if not provided
                 Slaptazodis = generatedPassword  // Save the generated password
             };
 
             // Save user to the database
-            _context.Vartotojai.Add(newUser);
+            _context.vartotojai.Add(newUser);
             await _context.SaveChangesAsync();
 
             // Send an email with the login credentials
@@ -110,9 +110,9 @@ namespace backas.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             // Fetch user from the database based on the provided ID
-            var user = await _context.Vartotojai
-                        .Include(u => u.Universitetas)  // Optionally include related data
-                        .Include(u => u.Fakultetas)     // Optionally include related data
+            var user = await _context.vartotojai
+                        .Include(u => u.universitetas)  // Optionally include related data
+                        .Include(u => u.fakultetas)     // Optionally include related data
                         .FirstOrDefaultAsync(u => u.Id == id);
 
             // If user not found, return a 404 NotFound response
@@ -130,8 +130,8 @@ namespace backas.Controllers
                 user.Pavarde,
                 user.Telefonas,
                 user.VartotojoRole,
-                Universitetas = user.Universitetas?.Pavadinimas,  // Null-safe navigation
-                Fakultetas = user.Fakultetas?.Pavadinimas         // Null-safe navigation
+                universitetasId = user.universitetasId,  // Return universitetasId instead of the name
+                fakultetasId = user.fakultetasId           // Null-safe navigation
             });
         }
 
@@ -139,7 +139,7 @@ namespace backas.Controllers
         public async Task<IActionResult> EditUser(int id, [FromBody] EditUserRequest request)
         {
             // Fetch the user from the database
-            var user = await _context.Vartotojai.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.vartotojai.FirstOrDefaultAsync(u => u.Id == id);
 
             // Check if the user exists
             if (user == null)
@@ -160,24 +160,24 @@ namespace backas.Controllers
             user.VartotojoRole = request.VartotojoRole;
 
             // Optionally, update the university and faculty if needed
-            if (request.UniversitetasId.HasValue)
+            if (request.universitetasId.HasValue)
             {
-                var universitetas = await _context.Universitetai.FindAsync(request.UniversitetasId);
+                var universitetas = await _context.universitetai.FindAsync(request.universitetasId);
                 if (universitetas == null)
                 {
                     return NotFound("University not found.");
                 }
-                user.UniversitetasId = request.UniversitetasId;
+                user.universitetasId = request.universitetasId;
             }
 
-            if (request.FakultetasId.HasValue)
+            if (request.fakultetasId.HasValue)
             {
-                var fakultetas = await _context.Fakultetai.FindAsync(request.FakultetasId);
+                var fakultetas = await _context.fakultetai.FindAsync(request.fakultetasId);
                 if (fakultetas == null)
                 {
                     return NotFound("Faculty not found.");
                 }
-                user.FakultetasId = request.FakultetasId;
+                user.fakultetasId = request.fakultetasId;
             }
 
             // Save the changes to the database
@@ -191,9 +191,9 @@ namespace backas.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             // Fetch all users from the database
-            var users = await _context.Vartotojai
-                        .Include(u => u.Universitetas)  // Optionally include related data
-                        .Include(u => u.Fakultetas)     // Optionally include related data
+            var users = await _context.vartotojai
+                        .Include(u => u.universitetas)  // Optionally include related data
+                        .Include(u => u.fakultetas)     // Optionally include related data
                         .Select(u => new
                         {
                             u.Id,
@@ -202,8 +202,8 @@ namespace backas.Controllers
                             u.Pavarde,
                             u.Telefonas,
                             u.VartotojoRole,
-                            Universitetas = u.Universitetas != null ? u.Universitetas.Pavadinimas : null,  // Null-safe navigation
-                            Fakultetas = u.Fakultetas != null ? u.Fakultetas.Pavadinimas : null             // Null-safe navigation
+                            universitetasId = u.universitetasId,  // Return universitetasId instead of the name
+                            fakultetasId = u.fakultetasId             // Null-safe navigation
                         })
                         .ToListAsync();
 
@@ -215,10 +215,10 @@ namespace backas.Controllers
         public async Task<IActionResult> GetUsersByGroupId(int groupId)
         {
             // Fetch users who belong to the specified group ID
-            var users = await _context.Vartotojai
-                            .Where(u => u.GrupeId == groupId)  // Filter users by group ID
-                            .Include(u => u.Universitetas)  // Optionally include related data
-                            .Include(u => u.Fakultetas)     // Optionally include related data
+            var users = await _context.vartotojai
+                            .Where(u => u.grupeId == groupId)  // Filter users by group ID
+                            .Include(u => u.universitetas)  // Optionally include related data
+                            .Include(u => u.fakultetas)     // Optionally include related data
                             .Select(u => new
                             {
                                 u.Id,
@@ -227,8 +227,8 @@ namespace backas.Controllers
                                 u.Pavarde,
                                 u.Telefonas,
                                 u.VartotojoRole,
-                                Universitetas = u.Universitetas != null ? u.Universitetas.Pavadinimas : null,  // Null-safe navigation
-                                Fakultetas = u.Fakultetas != null ? u.Fakultetas.Pavadinimas : null             // Null-safe navigation
+                                universitetasId = u.universitetasId,  // Return universitetasId instead of the name
+                                fakultetasId = u.fakultetasId               // Null-safe navigation
                             })
                             .ToListAsync();
 
@@ -246,7 +246,7 @@ namespace backas.Controllers
         public async Task<IActionResult> DeleteUser(int id)
         {
             // Fetch the user from the database
-            var user = await _context.Vartotojai.FindAsync(id);
+            var user = await _context.vartotojai.FindAsync(id);
 
             // Check if the user exists
             if (user == null)
@@ -255,7 +255,7 @@ namespace backas.Controllers
             }
 
             // Remove the user from the database
-            _context.Vartotojai.Remove(user);
+            _context.vartotojai.Remove(user);
             await _context.SaveChangesAsync();
 
             // Return a success response
@@ -266,7 +266,7 @@ namespace backas.Controllers
         public async Task<IActionResult> RemoveUserFromGroup(int userId)
         {
             // Fetch the user from the database
-            var user = await _context.Vartotojai.FindAsync(userId);
+            var user = await _context.vartotojai.FindAsync(userId);
 
             // Check if the user exists
             if (user == null)
@@ -275,13 +275,13 @@ namespace backas.Controllers
             }
 
             // Check if the user is associated with a group
-            if (user.GrupeId == null)
+            if (user.grupeId == null)
             {
                 return BadRequest("User is not associated with any group.");
             }
 
             // Remove the user from the group
-            user.GrupeId = null;
+            user.grupeId = null;
             await _context.SaveChangesAsync();
 
             // Return a success response

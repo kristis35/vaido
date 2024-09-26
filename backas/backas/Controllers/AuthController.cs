@@ -31,7 +31,7 @@ namespace backas.Controllers
                 return BadRequest("Username and password are required.");
             }
 
-            var user = await _context.Vartotojai
+            var user = await _context.vartotojai
                 .FirstOrDefaultAsync(u => u.PrisijungimoVardas == request.PrisijungimoVardas);
 
             if (user == null || user.Slaptazodis != request.Slaptazodis)
@@ -51,7 +51,7 @@ namespace backas.Controllers
         }
 
 
-        private string GenerateJwtToken(Vartotojai user)
+        private string GenerateJwtToken(vartotojai user)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
 

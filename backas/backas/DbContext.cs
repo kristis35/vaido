@@ -11,18 +11,18 @@ namespace backas
         }
 
         // DbSets representing the tables in the database
-        public DbSet<Vartotojai> Vartotojai { get; set; }
-        public DbSet<Universitetas> Universitetai { get; set; }
-        public DbSet<Fakultetas> Fakultetai { get; set; }
-        public DbSet<Grupe> Grupes { get; set; }  // New Grupe table
+        public DbSet<vartotojai> vartotojai { get; set; }
+        public DbSet<universitetas> universitetai { get; set; }
+        public DbSet<fakultetas> fakultetai { get; set; }
+        public DbSet<grupe> grupes { get; set; }  // New grupe table
 
         // OnModelCreating to configure relationships and keys
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Vartotojai table configuration
-            modelBuilder.Entity<Vartotojai>(entity =>
+            // vartotojai table configuration
+            modelBuilder.Entity<vartotojai>(entity =>
             {
                 entity.HasKey(e => e.Id);  // Primary key
                 entity.Property(e => e.PrisijungimoVardas).IsRequired().HasMaxLength(255);
@@ -32,27 +32,27 @@ namespace backas
                 entity.Property(e => e.VartotojoRole).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Slaptazodis).IsRequired().HasMaxLength(255);
 
-                // Relationship with Universitetas (Foreign key)
-                entity.HasOne(e => e.Universitetas)
-                      .WithMany(u => u.Vartotojai)
-                      .HasForeignKey(e => e.UniversitetasId)
+                // Relationship with universitetas (Foreign key)
+                entity.HasOne(e => e.universitetas)
+                      .WithMany(u => u.vartotojai)
+                      .HasForeignKey(e => e.universitetasId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Relationship with Fakultetas (Foreign key)
-                entity.HasOne(e => e.Fakultetas)
-                      .WithMany(f => f.Vartotojai)
-                      .HasForeignKey(e => e.FakultetasId)
+                // Relationship with fakultetas (Foreign key)
+                entity.HasOne(e => e.fakultetas)
+                      .WithMany(f => f.vartotojai)
+                      .HasForeignKey(e => e.fakultetasId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Relationship with Grupe (foreign key)
-                entity.HasOne(e => e.Grupe)
-                      .WithMany(g => g.Vartotojai)
-                      .HasForeignKey(e => e.GrupeId)
+                // Relationship with grupe (foreign key)
+                entity.HasOne(e => e.grupe)
+                      .WithMany(g => g.vartotojai)
+                      .HasForeignKey(e => e.grupeId)
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Grupe table configuration
-            modelBuilder.Entity<Grupe>(entity =>
+            // grupe table configuration
+            modelBuilder.Entity<grupe>(entity =>
             {
                 entity.HasKey(e => e.Id);  // Primary key
                 entity.Property(e => e.Pavadinimas).IsRequired().HasMaxLength(255);
@@ -64,51 +64,51 @@ namespace backas
                 entity.Property(e => e.ApmokejimoStadija).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.GamybosStadija).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Pastabos).HasMaxLength(1000);
-                entity.Property(e => e.GrupesSeniunas).HasMaxLength(255);
+                entity.Property(e => e.grupesSeniunas).HasMaxLength(255);
                 entity.Property(e => e.FotografavimoDataVieta).HasMaxLength(500);
 
                 // Relationships
-                entity.HasOne(e => e.Universitetas)
-                      .WithMany(u => u.Grupes)
-                      .HasForeignKey(e => e.UniversitetasId)
+                entity.HasOne(e => e.universitetas)
+                      .WithMany(u => u.grupes)
+                      .HasForeignKey(e => e.universitetasId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(e => e.Fakultetas)
-                      .WithMany(f => f.Grupes)
-                      .HasForeignKey(e => e.FakultetasId)
+                entity.HasOne(e => e.fakultetas)
+                      .WithMany(f => f.grupes)
+                      .HasForeignKey(e => e.fakultetasId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(g => g.Vartotojai)
-                      .WithOne(v => v.Grupe)
-                      .HasForeignKey(v => v.GrupeId);
+                entity.HasMany(g => g.vartotojai)
+                      .WithOne(v => v.grupe)
+                      .HasForeignKey(v => v.grupeId);
             });
 
-            // Configure Universitetas table
-            modelBuilder.Entity<Universitetas>(entity =>
+            // Configure universitetas table
+            modelBuilder.Entity<universitetas>(entity =>
             {
                 entity.HasKey(e => e.Id);  // Primary key
                 entity.Property(e => e.Pavadinimas).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.TrumpasPavadinimas).IsRequired().HasMaxLength(100);
             });
 
-            // Fakultetas table configuration
-            modelBuilder.Entity<Fakultetas>(entity =>
+            // fakultetas table configuration
+            modelBuilder.Entity<fakultetas>(entity =>
             {
                 entity.HasKey(e => e.Id);  // Primary key
                 entity.Property(e => e.Pavadinimas).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.TrumpasPavadinimas).IsRequired().HasMaxLength(100);
 
-                // Relationship with Universitetas
-                entity.HasOne(f => f.Universitetas)
-                      .WithMany(u => u.Fakultetai)  // A university can have many faculties
-                      .HasForeignKey(f => f.UniversitetasId)
+                // Relationship with universitetas
+                entity.HasOne(f => f.universitetas)
+                      .WithMany(u => u.fakultetai)  // A university can have many faculties
+                      .HasForeignKey(f => f.universitetasId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
 
-    // Vartotojai class
-    public class Vartotojai
+    // vartotojai class
+    public class vartotojai
     {
         public int Id { get; set; }
         public string PrisijungimoVardas { get; set; }  // Username
@@ -118,72 +118,72 @@ namespace backas
         public string VartotojoRole { get; set; }  // User Role
         public string Slaptazodis { get; set; }  // Password
 
-        // Nullable foreign key to Universitetas (for roles that don't belong to a university)
-        public int? UniversitetasId { get; set; }  // Nullable foreign key for Universitetas
-        public Universitetas Universitetas { get; set; }  // Navigation property for Universitetas
+        // Nullable foreign key to universitetas (for roles that don't belong to a university)
+        public int? universitetasId { get; set; }  // Nullable foreign key for universitetas
+        public universitetas universitetas { get; set; }  // Navigation property for universitetas
 
-        // Nullable foreign key to Fakultetas (for roles that don't belong to a faculty)
-        public int? FakultetasId { get; set; }  // Nullable foreign key for Fakultetas
-        public Fakultetas Fakultetas { get; set; }  // Navigation property for Fakultetas
+        // Nullable foreign key to fakultetas (for roles that don't belong to a faculty)
+        public int? fakultetasId { get; set; }  // Nullable foreign key for fakultetas
+        public fakultetas fakultetas { get; set; }  // Navigation property for fakultetas
 
-        // **New**: Foreign key to Grupe
-        public int? GrupeId { get; set; }  // Nullable foreign key for Grupe
-        public Grupe Grupe { get; set; }  // Navigation property for Grupe
+        // **New**: Foreign key to grupe
+        public int? grupeId { get; set; }  // Nullable foreign key for grupe
+        public grupe grupe { get; set; }  // Navigation property for grupe
     }
 
 
 
-    // Universitetas class
-    public class Universitetas
+    // universitetas class
+    public class universitetas
     {
         public int Id { get; set; }
         public string Pavadinimas { get; set; }
         public string TrumpasPavadinimas { get; set; }
 
-        // Navigation property for related Fakultetai
-        public ICollection<Fakultetas> Fakultetai { get; set; }
+        // Navigation property for related fakultetai
+        public ICollection<fakultetas> fakultetai { get; set; }
 
-        // Navigation property for related Vartotojai
-        public ICollection<Vartotojai> Vartotojai { get; set; }
+        // Navigation property for related vartotojai
+        public ICollection<vartotojai> vartotojai { get; set; }
 
-        // Navigation property for related Grupes
-        public ICollection<Grupe> Grupes { get; set; }
+        // Navigation property for related grupes
+        public ICollection<grupe> grupes { get; set; }
     }
 
-    // Fakultetas class
-    public class Fakultetas
+    // fakultetas class
+    public class fakultetas
     {
         public int Id { get; set; }
         public string Pavadinimas { get; set; }
         public string TrumpasPavadinimas { get; set; }
 
-        // Foreign key to Universitetas
-        public int UniversitetasId { get; set; }
+        // Foreign key to universitetas
+        public int universitetasId { get; set; }
         [JsonIgnore]
-        public Universitetas Universitetas { get; set; } // This breaks the cycle
+        public universitetas universitetas { get; set; } // This breaks the cycle
 
-        // Navigation property for related Vartotojai
-        public ICollection<Vartotojai> Vartotojai { get; set; }
+        // Navigation property for related vartotojai
+        public ICollection<vartotojai> vartotojai { get; set; }
 
-        // Navigation property for related Grupes
-        public ICollection<Grupe> Grupes { get; set; }
+        // Navigation property for related grupes
+        public ICollection<grupe> grupes { get; set; }
     }
 
-    // Grupe class (new table)
-    public class Grupe
+    // grupe class (new table)
+    public class grupe
     {
         public int Id { get; set; }
         public string Pavadinimas { get; set; }  // Short name
         public string IlgasPavadinimas { get; set; }  // Long name
-        public int UniversitetasId { get; set; }  // Foreign key to Universitetas
+        public int universitetasId { get; set; }  // Foreign key to universitetas
 
         [JsonIgnore]  // Prevents serialization loop
-        public Universitetas Universitetas { get; set; }  // Navigation property for Universitetas
+        public universitetas universitetas { get; set; }  // Navigation property for universitetas
 
-        public int FakultetasId { get; set; }  // Foreign key to Fakultetas
+        public int fakultetasId { get; set; }  // Foreign key to fakultetas
 
         [JsonIgnore]  // Prevents serialization loop
-        public Fakultetas Fakultetas { get; set; }  // Navigation property for Fakultetas
+        public fakultetas fakultetas { get; set; }  // Navigation property for fakultetas
 
         public int ĮstojimoMetai { get; set; }  // Enrollment year
         public int BaigimoMetai { get; set; }  // Graduation year
@@ -191,13 +191,13 @@ namespace backas
         public decimal SumoketasAvansas { get; set; }  // Advance payment
         public string ApmokejimoStadija { get; set; }  // Payment status
         public string GamybosStadija { get; set; }  // Production stage
-        public bool PasleptiGrupe { get; set; }  // Hide group, order completed
+        public bool Pasleptigrupe { get; set; }  // Hide group, order completed
         public string Pastabos { get; set; }  // Notes
         public bool PatvirtintasSarasas { get; set; }  // Approved group list
         public bool BalsavimasMaketai { get; set; }  // Voting on layouts started
-        public int GrupesSeniunas { get; set; }  // Group senior
+        public int grupesSeniunas { get; set; }  // Group senior
         public string FotografavimoDataVieta { get; set; }  // Photography date and location
         [JsonIgnore]
-        public ICollection<Vartotojai> Vartotojai { get; set; }
+        public ICollection<vartotojai> vartotojai { get; set; }
     }
 }

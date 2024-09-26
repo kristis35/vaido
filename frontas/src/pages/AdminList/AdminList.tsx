@@ -136,8 +136,6 @@ const AdminView: React.FC = () => {
   };
 
   const handleSaveChanges = () => {
-    console.log('Saving changes to the server or database:');
-    console.log(photoshootData); // This is where you would send the data to your backend API
   };
 
   return (
