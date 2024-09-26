@@ -97,8 +97,6 @@ const ChooseDate: React.FC = () => {
   };
 
   const handleSave = () => {
-    console.log('Group Data:', groupData);
-    // Save logic goes here
   };
 
   return (

@@ -25,8 +25,6 @@ const AddUniversity: React.FC = () => {
       setError('Prašome įvesti universiteto pavadinimą.');
     } else {
       setError(null);
-      console.log('University added:', university);
-      // Implement save logic here
     }
   };
 

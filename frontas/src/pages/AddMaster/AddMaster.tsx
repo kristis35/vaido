@@ -14,8 +14,8 @@ import {
     SelectChangeEvent,
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { getData, postData } from '../../services/api/Axios'; // Import the axios helper functions
-import { University, Faculty, User } from '../../interfaces'; // Import interfaces from the new file
+import { getData, postData } from '../../services/api/Axios';
+import { University, Faculty, Useris } from '../../interfaces'; // Import interfaces from the new file
 
 // Custom styles for the red asterisk
 const RedAsterisk = styled('span')({
@@ -36,29 +36,30 @@ const roles = [
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AddMaster: React.FC = () => {
-    const [user, setUser] = useState<User>({
-        name: '',
-        surname: '',
-        email: '',
-        telephone: '',
-        university: '',
-        faculty: '',
-        role: 'studentas',
+    const [user, setUser] = useState<Useris>({
+        id: 0,
+        prisijungimoVardas: '',
+        vardas: '',
+        pavarde: '',
+        telefonas: '',
+        fakultetasId: 0,
+        universitetasId: 0,
+        vartotojoRole: 'studentas',
     });
     const [universities, setUniversities] = useState<University[]>([]);
     const [faculties, setFaculties] = useState<Faculty[]>([]);
+    const [filteredFaculties, setFilteredFaculties] = useState<Faculty[]>([]);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
-        // Fetch universities and faculties when the component mounts
         const fetchUniversities = async () => {
             try {
                 const universityList = await getData<University[]>('/UniversityCrud/all');
                 setUniversities(universityList);
             } catch (error) {
-                console.error('Nepavyko gauti universitetų sąrašo:', error);
+                console.error('Failed to fetch universities:', error);
             }
         };
 
@@ -67,7 +68,7 @@ const AddMaster: React.FC = () => {
                 const facultyList = await getData<Faculty[]>('/Fakultetas/all');
                 setFaculties(facultyList);
             } catch (error) {
-                console.error('Nepavyko gauti fakultetų sąrašo:', error);
+                console.error('Failed to fetch faculties:', error);
             }
         };
 
@@ -76,19 +77,28 @@ const AddMaster: React.FC = () => {
     }, []);
 
     const handleInputChange = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<number | string>
     ) => {
         const { name, value } = event.target;
-        setUser({ ...user, [name!]: value });
+
+        if (name === 'universitetasId') {
+            const universityId = parseInt(value as string);
+            setFilteredFaculties(faculties.filter(faculty => faculty.universitetasId === universityId));
+            setUser({ ...user, fakultetasId: 0, [name]: universityId });
+        } else if (name === 'fakultetasId' || name === 'universitetasId') {
+            setUser({ ...user, [name]: parseInt(value as string) });
+        } else {
+            setUser({ ...user, [name]: value });
+        }
     };
 
     const validateFields = () => {
         const validationErrors: { [key: string]: boolean } = {};
-        validationErrors.name = !user.name;
-        validationErrors.surname = !user.surname;
-        validationErrors.email = !user.email || !emailRegex.test(user.email);
-        validationErrors.telephone = !user.telephone;
-        validationErrors.role = !user.role;
+        validationErrors.vardas = !user.vardas;
+        validationErrors.pavarde = !user.pavarde;
+        validationErrors.prisijungimoVardas = !user.prisijungimoVardas || !emailRegex.test(user.prisijungimoVardas);
+        validationErrors.telefonas = !user.telefonas;
+        validationErrors.vartotojoRole = !user.vartotojoRole;
 
         setErrors(validationErrors);
         return Object.values(validationErrors).every(isValid => !isValid);
@@ -100,33 +110,38 @@ const AddMaster: React.FC = () => {
             return;
         }
 
-        // Prepare data to send to the API, with universitetasId and fakultetasId as 0 if not provided
-        const userData = {
-            prisijungimoVardas: user.email,
-            vardas: user.name,
-            pavarde: user.surname,
-            telefonas: user.telephone,
-            vartotojoRole: user.role,
-            universitetasId: user.university ? parseInt(user.university) : 0,
-            fakultetasId: user.faculty ? parseInt(user.faculty) : 0,
+        const userData: Partial<Useris> = {
+            prisijungimoVardas: user.prisijungimoVardas,
+            vardas: user.vardas,
+            pavarde: user.pavarde,
+            telefonas: user.telefonas,
+            vartotojoRole: user.vartotojoRole,
         };
+        if (user.universitetasId) {
+            userData.universitetasId = user.universitetasId;
+        }
+        if (user.fakultetasId) {
+            userData.fakultetasId = user.fakultetasId;
+        }
 
         setLoading(true);
         try {
-            await postData('/User/create', userData); // Adjusted to send a single user object
+            await postData('/User/create', userData); 
             setLoading(false);
             setSuccessMessage('Vartotojas sėkmingai pridėtas!');
             setUser({
-                name: '',
-                surname: '',
-                email: '',
-                telephone: '',
-                university: '',
-                faculty: '',
-                role: 'studentas',
+                id: 0,
+                prisijungimoVardas: '',
+                vardas: '',
+                pavarde: '',
+                telefonas: '',
+                fakultetasId: 0,
+                universitetasId: 0,
+                vartotojoRole: 'studentas',
             });
+            setFilteredFaculties([]);
         } catch (error) {
-            console.error('Klaida pridedant asmenį:', error);
+            console.error('Failed to create user:', error);
             setLoading(false);
         }
     };
@@ -145,11 +160,11 @@ const AddMaster: React.FC = () => {
                         <TextField
                             fullWidth
                             label={<>Vardas<RedAsterisk>*</RedAsterisk></>}
-                            name="name"
-                            value={user.name}
+                            name="vardas"
+                            value={user.vardas}
                             onChange={handleInputChange}
-                            error={!!errors.name}
-                            helperText={errors.name ? 'Privalomas laukas' : ''}
+                            error={!!errors.vardas}
+                            helperText={errors.vardas ? 'Privalomas laukas' : ''}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
@@ -157,11 +172,11 @@ const AddMaster: React.FC = () => {
                         <TextField
                             fullWidth
                             label={<>Pavardė<RedAsterisk>*</RedAsterisk></>}
-                            name="surname"
-                            value={user.surname}
+                            name="pavarde"
+                            value={user.pavarde}
                             onChange={handleInputChange}
-                            error={!!errors.surname}
-                            helperText={errors.surname ? 'Privalomas laukas' : ''}
+                            error={!!errors.pavarde}
+                            helperText={errors.pavarde ? 'Privalomas laukas' : ''}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
@@ -169,11 +184,11 @@ const AddMaster: React.FC = () => {
                         <TextField
                             fullWidth
                             label={<>El. paštas<RedAsterisk>*</RedAsterisk></>}
-                            name="email"
-                            value={user.email}
+                            name="prisijungimoVardas"
+                            value={user.prisijungimoVardas}
                             onChange={handleInputChange}
-                            error={!!errors.email}
-                            helperText={errors.email ? 'Privalomas laukas arba neteisingas formatas' : ''}
+                            error={!!errors.prisijungimoVardas}
+                            helperText={errors.prisijungimoVardas ? 'Privalomas laukas arba neteisingas formatas' : ''}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
@@ -181,29 +196,29 @@ const AddMaster: React.FC = () => {
                         <TextField
                             fullWidth
                             label={<>Telefonas<RedAsterisk>*</RedAsterisk></>}
-                            name="telephone"
-                            value={user.telephone}
+                            name="telefonas"
+                            value={user.telefonas}
                             onChange={handleInputChange}
-                            error={!!errors.telephone}
-                            helperText={errors.telephone ? 'Privalomas laukas' : ''}
+                            error={!!errors.telefonas}
+                            helperText={errors.telefonas ? 'Privalomas laukas' : ''}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth error={!!errors.university}>
+                        <FormControl fullWidth error={!!errors.universitetasid}>
                             <InputLabel shrink>
                                 Universitetas
                             </InputLabel>
                             <Select
-                                name="university"
-                                value={user.university}
-                                onChange={(event) => handleInputChange(event as SelectChangeEvent<string>)}
+                                name="universitetasid"
+                                value={user.universitetasId.toString()}
+                                onChange={(event) => handleInputChange(event as SelectChangeEvent<number>)}
                             >
                                 <MenuItem value="">
                                     <em>None</em>
                                 </MenuItem>
                                 {universities.map((university) => (
-                                    <MenuItem key={university.id} value={university.id.toString()}>
+                                    <MenuItem key={university.id} value={university.id}>
                                         {university.pavadinimas}
                                     </MenuItem>
                                 ))}
@@ -211,20 +226,20 @@ const AddMaster: React.FC = () => {
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth error={!!errors.faculty}>
+                        <FormControl fullWidth error={!!errors.fakultetasid}>
                             <InputLabel shrink>
                                 Fakultetas
                             </InputLabel>
                             <Select
-                                name="faculty"
-                                value={user.faculty}
-                                onChange={(event) => handleInputChange(event as SelectChangeEvent<string>)}
+                                name="fakultetasid"
+                                value={user.fakultetasId.toString()}
+                                onChange={(event) => handleInputChange(event as SelectChangeEvent<number>)}
                             >
                                 <MenuItem value="">
                                     <em>None</em>
                                 </MenuItem>
-                                {faculties.map((faculty) => (
-                                    <MenuItem key={faculty.id} value={faculty.id.toString()}>
+                                {filteredFaculties.map((faculty) => (
+                                    <MenuItem key={faculty.id} value={faculty.id}>
                                         {faculty.pavadinimas}
                                     </MenuItem>
                                 ))}
@@ -232,13 +247,13 @@ const AddMaster: React.FC = () => {
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth error={!!errors.role}>
+                        <FormControl fullWidth error={!!errors.vartotojoRole}>
                             <InputLabel shrink>
                                 Rolė<RedAsterisk>*</RedAsterisk>
                             </InputLabel>
                             <Select
-                                name="role"
-                                value={user.role}
+                                name="vartotojoRole"
+                                value={user.vartotojoRole}
                                 onChange={(event) => handleInputChange(event as SelectChangeEvent<string>)}
                             >
                                 {roles.map((role) => (

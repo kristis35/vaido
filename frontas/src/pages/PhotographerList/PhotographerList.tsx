@@ -99,7 +99,6 @@ const PhotographerList: React.FC = () => {
 
   const handleStartVote = (groupName: string) => {
     // Logic to start a vote for the photo background for the group
-    console.log(`Voting for photo background started for ${groupName}`);
     // Implement the backend call or further actions here
   };
 

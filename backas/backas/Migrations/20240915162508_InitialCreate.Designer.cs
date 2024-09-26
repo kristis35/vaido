@@ -25,7 +25,7 @@ namespace backas.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("backas.Fakultetas", b =>
+            modelBuilder.Entity("backas.fakultetas", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,17 +43,17 @@ namespace backas.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int>("UniversitetasId")
+                    b.Property<int>("universitetasId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UniversitetasId");
+                    b.HasIndex("universitetasId");
 
-                    b.ToTable("Fakultetai");
+                    b.ToTable("fakultetai");
                 });
 
-            modelBuilder.Entity("backas.Grupe", b =>
+            modelBuilder.Entity("backas.grupe", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,7 @@ namespace backas.Migrations
                     b.Property<bool>("BalsavimasMaketai")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("FakultetasId")
+                    b.Property<int>("fakultetasId")
                         .HasColumnType("int");
 
                     b.Property<string>("FotografavimoDataVieta")
@@ -85,7 +85,7 @@ namespace backas.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("GrupesSeniunas")
+                    b.Property<string>("grupesSeniunas")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
@@ -95,7 +95,7 @@ namespace backas.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
-                    b.Property<bool>("PasleptiGrupe")
+                    b.Property<bool>("Pasleptigrupe")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Pastabos")
@@ -117,7 +117,7 @@ namespace backas.Migrations
                     b.Property<decimal>("SumoketasAvansas")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UniversitetasId")
+                    b.Property<int>("universitetasId")
                         .HasColumnType("int");
 
                     b.Property<int>("ĮstojimoMetai")
@@ -125,14 +125,14 @@ namespace backas.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FakultetasId");
+                    b.HasIndex("fakultetasId");
 
-                    b.HasIndex("UniversitetasId");
+                    b.HasIndex("universitetasId");
 
-                    b.ToTable("Grupes");
+                    b.ToTable("grupes");
                 });
 
-            modelBuilder.Entity("backas.Universitetas", b =>
+            modelBuilder.Entity("backas.universitetas", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,10 +152,10 @@ namespace backas.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Universitetai");
+                    b.ToTable("universitetai");
                 });
 
-            modelBuilder.Entity("backas.Vartotojai", b =>
+            modelBuilder.Entity("backas.vartotojai", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -163,10 +163,10 @@ namespace backas.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("FakultetasId")
+                    b.Property<int?>("fakultetasId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("GrupeId")
+                    b.Property<int?>("grupeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Pavarde")
@@ -189,7 +189,7 @@ namespace backas.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<int?>("UniversitetasId")
+                    b.Property<int?>("universitetasId")
                         .HasColumnType("int");
 
                     b.Property<string>("Vardas")
@@ -204,88 +204,88 @@ namespace backas.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FakultetasId");
+                    b.HasIndex("fakultetasId");
 
-                    b.HasIndex("GrupeId");
+                    b.HasIndex("grupeId");
 
-                    b.HasIndex("UniversitetasId");
+                    b.HasIndex("universitetasId");
 
-                    b.ToTable("Vartotojai");
+                    b.ToTable("vartotojai");
                 });
 
-            modelBuilder.Entity("backas.Fakultetas", b =>
+            modelBuilder.Entity("backas.fakultetas", b =>
                 {
-                    b.HasOne("backas.Universitetas", "Universitetas")
-                        .WithMany("Fakultetai")
-                        .HasForeignKey("UniversitetasId")
+                    b.HasOne("backas.universitetas", "universitetas")
+                        .WithMany("fakultetai")
+                        .HasForeignKey("universitetasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Universitetas");
+                    b.Navigation("universitetas");
                 });
 
-            modelBuilder.Entity("backas.Grupe", b =>
+            modelBuilder.Entity("backas.grupe", b =>
                 {
-                    b.HasOne("backas.Fakultetas", "Fakultetas")
-                        .WithMany("Grupes")
-                        .HasForeignKey("FakultetasId")
+                    b.HasOne("backas.fakultetas", "fakultetas")
+                        .WithMany("grupes")
+                        .HasForeignKey("fakultetasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backas.Universitetas", "Universitetas")
-                        .WithMany("Grupes")
-                        .HasForeignKey("UniversitetasId")
+                    b.HasOne("backas.universitetas", "universitetas")
+                        .WithMany("grupes")
+                        .HasForeignKey("universitetasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Fakultetas");
+                    b.Navigation("fakultetas");
 
-                    b.Navigation("Universitetas");
+                    b.Navigation("universitetas");
                 });
 
-            modelBuilder.Entity("backas.Vartotojai", b =>
+            modelBuilder.Entity("backas.vartotojai", b =>
                 {
-                    b.HasOne("backas.Fakultetas", "Fakultetas")
-                        .WithMany("Vartotojai")
-                        .HasForeignKey("FakultetasId")
+                    b.HasOne("backas.fakultetas", "fakultetas")
+                        .WithMany("vartotojai")
+                        .HasForeignKey("fakultetasId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("backas.Grupe", "Grupe")
-                        .WithMany("Vartotojai")
-                        .HasForeignKey("GrupeId")
+                    b.HasOne("backas.grupe", "grupe")
+                        .WithMany("vartotojai")
+                        .HasForeignKey("grupeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("backas.Universitetas", "Universitetas")
-                        .WithMany("Vartotojai")
-                        .HasForeignKey("UniversitetasId")
+                    b.HasOne("backas.universitetas", "universitetas")
+                        .WithMany("vartotojai")
+                        .HasForeignKey("universitetasId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Fakultetas");
+                    b.Navigation("fakultetas");
 
-                    b.Navigation("Grupe");
+                    b.Navigation("grupe");
 
-                    b.Navigation("Universitetas");
+                    b.Navigation("universitetas");
                 });
 
-            modelBuilder.Entity("backas.Fakultetas", b =>
+            modelBuilder.Entity("backas.fakultetas", b =>
                 {
-                    b.Navigation("Grupes");
+                    b.Navigation("grupes");
 
-                    b.Navigation("Vartotojai");
+                    b.Navigation("vartotojai");
                 });
 
-            modelBuilder.Entity("backas.Grupe", b =>
+            modelBuilder.Entity("backas.grupe", b =>
                 {
-                    b.Navigation("Vartotojai");
+                    b.Navigation("vartotojai");
                 });
 
-            modelBuilder.Entity("backas.Universitetas", b =>
+            modelBuilder.Entity("backas.universitetas", b =>
                 {
-                    b.Navigation("Fakultetai");
+                    b.Navigation("fakultetai");
 
-                    b.Navigation("Grupes");
+                    b.Navigation("grupes");
 
-                    b.Navigation("Vartotojai");
+                    b.Navigation("vartotojai");
                 });
 #pragma warning restore 612, 618
         }

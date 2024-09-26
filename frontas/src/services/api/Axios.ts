@@ -3,7 +3,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://localhost:44359/api', // Replace with your actual base URL
+  baseURL: 'http://vinjetes.lt/api', // Replace with your actual base URL
+  // baseURL: 'https://localhost:44359/api',
   timeout: 10000, // Optional: specify a timeout for requests
   headers: {
     'Content-Type': 'application/json',

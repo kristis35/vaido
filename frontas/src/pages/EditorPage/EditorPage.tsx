@@ -86,17 +86,14 @@ const PhotoEditor: React.FC = () => {
 
   const handleDownloadLayout = (groupName: string) => {
     // Implement logic to download group photo layout
-    console.log(`Downloading layout for ${groupName}`);
   };
 
   const handleSaveVignette = (groupName: string) => {
     // Implement logic to save the vignette for the group
-    console.log(`Saving vignette for ${groupName}`);
   };
 
   const handleCompleteOrder = (groupName: string) => {
     // Implement logic to complete the order for the specific group
-    console.log(`Order completed for ${groupName}!`);
   };
 
   return (

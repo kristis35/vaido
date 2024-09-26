@@ -6,17 +6,17 @@ import { useAuth } from '../services/api/Context'; // Import useAuth hook
 const Header: React.FC = () => {
   const { role } = useAuth(); // Get the current user's role
 
-  return  (
+  return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          My Application
+          Vinječių sistema
         </Typography>
         <Box>
           {/* Show Login button only if the user is not logged in */}
           {!role && (
             <Button color="inherit" component={Link} to="/">
-              Login
+              Prisijungti
             </Button>
           )}
 
@@ -24,16 +24,16 @@ const Header: React.FC = () => {
           {role === 'super administratorius' && (
             <>
               <Button color="inherit" component={Link} to="/userlist">
-                User List
+                Naudotojų sąrašas
               </Button>
               <Button color="inherit" component={Link} to="/universitylist">
-                University List
+                Universitetų sąrašas
               </Button>
               <Button color="inherit" component={Link} to="/facultylist">
-                Faculty List
+                Fakultetų sąrašas
               </Button>
               <Button color="inherit" component={Link} to="/grouplist">
-                Group List
+                Grupių sąrašas
               </Button>
             </>
           )}
@@ -52,15 +52,20 @@ const Header: React.FC = () => {
 
           {/* Seniunas Buttons */}
           {role === 'seniunas' && (
+            <>
             <Button color="inherit" component={Link} to="/adduserlist">
-              Add User List
+              Pridėti grupiokus
             </Button>
+            <Button color="inherit" component={Link} to="/addgroup">
+              Sukurti grupe
+            </Button>
+            </>
           )}
 
           {/* Show Logout button only if the user is logged in */}
           {role && (
             <Button color="inherit" component={Link} to="/logout">
-              Logout
+              Atsijungti
             </Button>
           )}
         </Box>

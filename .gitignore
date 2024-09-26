@@ -1,0 +1,64 @@
+# Ignore build output directories
+backas/bin/
+backas/obj/
+*.dll
+*.exe
+*.pdb
+*.mdb
+
+# Ignore the .vs folder (Visual Studio working files)
+backas/.vs/
+
+# Ignore Rider/JetBrains specific files
+backas/.idea/
+backas/*.sln.iml
+
+# Ignore Visual Studio Code workspace files
+backas/.vscode/
+
+# Ignore NuGet packages
+backas/*.nupkg
+backas/packages/
+backas/.nuget/
+
+# Ignore build directories
+backas/artifacts/
+
+# Ignore publish output
+backas/publish/
+backas/*.Publish.xml
+
+# Ignore user-specific files
+backas/*.user
+backas/*.userosscache
+backas/*.suo
+backas/*.sln.docstates
+
+# Ignore test result files
+backas/TestResults/
+backas/*.TestResult.xml
+backas/*.coverage
+backas/*.coveragexml
+
+# Ignore logs and temporary files
+backas/*.log
+backas/*.tlog
+backas/*.tmp
+backas/*.temp
+backas/*.tmp*
+
+# Ignore other miscellaneous files
+backas/~$*
+backas/*.cache
+
+# Ignore all files inside DesignTimeBuild folder
+backas/**/DesignTimeBuild/
+
+# Ignore all files inside FileContentIndex folder
+backas/**/FileContentIndex/
+/backas/backas/bin
+/backas/backas/bin
+backas/backas/bin/Debug/net8.0/backas.dll
+/backas/backas/bin/Debug/net8.0
+/backas/backas/bin/Debug
+*.dll

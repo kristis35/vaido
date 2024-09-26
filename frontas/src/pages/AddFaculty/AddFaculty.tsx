@@ -36,7 +36,6 @@ const AddFaculty: React.FC = () => {
       setError('Prašome užpildyti visus privalomus laukus.');
     } else {
       setError(null);
-      console.log('Faculty added:', faculty);
       // Implement save logic here
     }
   };

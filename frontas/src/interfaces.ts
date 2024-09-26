@@ -2,6 +2,7 @@
 export interface Faculty {
     id: number;
     pavadinimas: string;
+    universitetasId: number;
 }
 
 export interface User {
@@ -9,8 +10,8 @@ export interface User {
     surname: string;
     email: string;
     telephone: string;
-    university: string;
-    faculty: string;
+    fakultetasid: number;
+    universitetasid: number;
     role: 'seniunas' | 'studentas' | 'fotolaboratorija' | 'maketuotojas' | 'fotografas' | 'administratoriust' | 'super administratorius';
 }
 
@@ -20,8 +21,8 @@ export interface Useris {
     vardas: string;
     pavarde: string;
     telefonas: string;
-    fakultetas: string | null;
-    universitetas: string | null;
+    fakultetasId: number;
+    universitetasId: number;
     vartotojoRole: string;
 }
 export interface University {
@@ -46,7 +47,7 @@ export interface Group {
     pastabos: string;
     patvirtintasSarasas: boolean;
     balsavimasMaketai: boolean;
-    grupesSeniunas: string;
+    grupesSeniunas: number;
     fotografavimoDataVieta: string;
 }
 

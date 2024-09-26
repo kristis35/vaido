@@ -20,9 +20,10 @@ import {
 } from '@mui/material';
 import { UploadFile, Download, Edit, Delete } from '@mui/icons-material';
 import { Group, Useris } from '../../interfaces';
-import { postData, getData , putData } from '../../services/api/Axios';
+import { postData, getData, putData } from '../../services/api/Axios';
 import { useAuth } from '../../services/api/Context';
-
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 interface UserRequest {
   Vardas: string;
   Pavarde: string;
@@ -31,17 +32,21 @@ interface UserRequest {
 }
 
 const AddUserList: React.FC = () => {
-  const { userId } = useAuth(); // Get userId from auth context
-  const [group, setGroup] = useState<Group | null>(null); // State to store group data
-  const [groupUsers, setGroupUsers] = useState<Useris[]>([]); // State to store users in the group
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+  const [group, setGroup] = useState<Group | null>(null);
+  const [groupUsers, setGroupUsers] = useState<Useris[]>([]);
   const [users, setUsers] = useState<UserRequest[]>([
     { Vardas: '', Pavarde: '', ElPastas: '', Telefonas: '' },
   ]);
-  const [editUser, setEditUser] = useState<Useris | null>(null); // State for user being edited
+  const [editUser, setEditUser] = useState<Useris | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  const isGroupConfirmed = group?.patvirtintasSarasas === true;
 
   useEffect(() => {
     if (userId) {
@@ -52,29 +57,26 @@ const AddUserList: React.FC = () => {
   const fetchGroupData = async () => {
     try {
       const response = await getData<Group>(`/Group/get-by-user/${userId}`);
-      setGroup(response); // Store the fetched group data
-      console.log('Group data:', response);
-      fetchGroupUsers(response.id); // Fetch users in the group
+      setGroup(response);
+      fetchGroupUsers(response.id);
     } catch (error) {
-      console.error('Failed to fetch group data:', error);
-      setError('Failed to fetch group data.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      console.log(axios.isAxiosError(error) && error.response?.status)
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        navigate('/addgroup', { state: { message: 'Jūs turite sukurti grupę.' } });
+      } else {
+        setError('Nepavyko gauti grupės duomenų.');
+        setTimeout(() => setError(null), 3000);
+      }
     }
   };
 
   const fetchGroupUsers = async (groupId: number) => {
     try {
       const response = await getData<Useris[]>(`/User/get-users-by-group/${groupId}`);
-      setGroupUsers(response); // Store the fetched users in the group
-      console.log('Group users:', response);
+      setGroupUsers(response);
     } catch (error) {
-      console.error('Failed to fetch group users:', error);
-      setError('Failed to fetch group users.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setError('Nepavyko gauti grupės narių.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -85,7 +87,7 @@ const AddUserList: React.FC = () => {
     setUsers(newUsers);
   };
 
-  const handleUploadExcel = (event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
+  const handleUploadExcel = async (event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragActive(false);
 
@@ -95,7 +97,7 @@ const AddUserList: React.FC = () => {
 
     if (file) {
       setExcelFile(file);
-      console.log('Excel file uploaded:', file.name);
+      await handleSave(file); // Automatically trigger the save process when the file is uploaded
     }
   };
 
@@ -108,20 +110,18 @@ const AddUserList: React.FC = () => {
     setIsDragActive(false);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (file?: File) => {
     if (!group) {
-      setError('Group data is not loaded yet.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setError('Grupės duomenys dar nėra įkelti.');
+      setTimeout(() => setError(null), 3000);
       return;
     }
 
     const formData = new FormData();
-    formData.append('GroupId', group.id.toString()); // Use the actual Group ID
+    formData.append('GroupId', group.id.toString());
 
-    if (excelFile) {
-      formData.append('ExcelFile', excelFile);
+    if (file || excelFile) {
+      formData.append('ExcelFile', file || excelFile!);
     } else if (users.length > 0) {
       users.forEach((user, index) => {
         formData.append(`Users[${index}].Vardas`, user.Vardas);
@@ -130,10 +130,8 @@ const AddUserList: React.FC = () => {
         formData.append(`Users[${index}].Telefonas`, user.Telefonas);
       });
     } else {
-      setError('Please add at least one user or upload an Excel file.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setError('Prašome pridėti bent vieną vartotoją arba įkelti Excel failą.');
+      setTimeout(() => setError(null), 3000);
       return;
     }
 
@@ -143,8 +141,7 @@ const AddUserList: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setSuccessMessage(response.message);
-      console.log('Users added:', response.message);
+      setSuccessMessage('Sėkmingai pridėti vartotojai');
 
       // Reset the form
       setUsers([{ Vardas: '', Pavarde: '', ElPastas: '', Telefonas: '' }]);
@@ -153,39 +150,22 @@ const AddUserList: React.FC = () => {
       // Refetch users in the group
       fetchGroupUsers(group.id);
 
-      // Clear the success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
-      console.error('Failed to add users:', error);
-      setError('Failed to add users.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setError('Nepavyko pridėti vartotojų.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
   const handleDeleteUser = async (userId: number) => {
     try {
       const response = await putData<{ message: string }>(`/User/remove-user-from-group/${userId}`, null);
-      setSuccessMessage(response.message);
-
-      // Refetch users in the group
+      setSuccessMessage('Vartotojas ištrintas');
       if (group) fetchGroupUsers(group.id);
-
-      // Clear the success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
-      console.error('Failed to delete user:', error);
-      setError('Failed to delete user.');
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setError('Nepavyko ištrinti vartotojo.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -203,43 +183,88 @@ const AddUserList: React.FC = () => {
           prisijungimoVardas: editUser.prisijungimoVardas,
           telefonas: editUser.telefonas,
           vartotojoRole: editUser.vartotojoRole,
-          universitetas: editUser.universitetas,
-          fakultetas: editUser.fakultetas 
+          universitetas: editUser.universitetasId,
+          fakultetas: editUser.fakultetasId,
         };
 
         const response = await putData<{ message: string }>(`/User/edit-user/${editUser.id}`, updatedUser);
-        setSuccessMessage(response.message);
+        setSuccessMessage('Pakeitimai išsaugoti vartotojo.');
         if (group) fetchGroupUsers(group.id);
         setEditUser(null);
-
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
+        setTimeout(() => setSuccessMessage(null), 3000);
       } catch (error) {
-        console.error('Failed to edit user:', error);
-        setError('Failed to edit user.');
-        setTimeout(() => {
-          setError(null);
-        }, 3000);
+        setError('Nepavyko redaguoti vartotojo.');
+        setTimeout(() => setError(null), 3000);
       }
     }
   };
 
+  const handleFakeSave = () => {
+    setSuccessMessage('Grupes informacija sekmingai išsaugota');
+    setTimeout(() => setError(null), 3000);
+  };
+
+  const handleConfirmGroup = () => {
+    if (!group) return;
+
+    const updatedGroup = {
+      ...group,
+      patvirtintasSarasas: true,
+    };
+
+    putData<{ message: string }>(`/Group/edit/${group.id}`, updatedGroup)
+      .then((response) => {
+        setSuccessMessage('Grupė patvirtinta sėkmingai.');
+        setTimeout(() => setError(null), 3000);
+        fetchGroupData(); // Refresh the group data
+      })
+      .catch((error) => {
+        setError('Nepavyko patvirtinti grupės.');
+        setTimeout(() => setError(null), 3000);
+      })
+      .finally(() => {
+        setConfirmDialogOpen(false);
+      });
+  };
+
   return (
     <Container maxWidth="lg" style={{ paddingTop: '20px' }}>
+      {isGroupConfirmed && (
+        <Alert severity="info" style={{ marginBottom: '16px' }}>
+          Grupė yra patvirtinta. Redagavimas negalimas.
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" style={{ marginBottom: '16px' }}>
+          {error}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" style={{ marginBottom: '16px' }}>
+          {successMessage}
+        </Alert>
+      )}
+
       {groupUsers.length > 0 && (
         <Paper elevation={3} style={{ padding: 16, marginBottom: 16 }}>
-          <Typography variant="h6">Users in this Group</Typography>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Grupės nariai</Typography>
+            {!isGroupConfirmed && (
+              <Button variant="contained" color="success" onClick={() => setConfirmDialogOpen(true)}>
+                Patvirtinti grupę
+              </Button>
+            )}
+          </Box>
           <List>
             {groupUsers.map((user) => (
               <React.Fragment key={user.id}>
                 <ListItem>
                   <ListItemText
                     primary={`${user.vardas} ${user.pavarde}`}
-                    secondary={`Email: ${user.prisijungimoVardas} | Phone: ${user.telefonas}`}
+                    secondary={`El. paštas: ${user.prisijungimoVardas} | Telefonas: ${user.telefonas}`}
                   />
-                  {/* Hide Edit and Delete buttons for users with role 'seniunas' */}
-                  {user.vartotojoRole !== 'seniunas' && (
+                  {!isGroupConfirmed && user.vartotojoRole !== 'seniunas' && (
                     <>
                       <IconButton edge="end" color="primary" onClick={() => handleEditUser(user)}>
                         <Edit />
@@ -259,50 +284,42 @@ const AddUserList: React.FC = () => {
 
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <Box
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleUploadExcel}
-            sx={{
-              border: isDragActive ? '2px dashed #1976d2' : 'none',
-              borderRadius: '4px',
-              padding: isDragActive ? '20px' : '0',
-              backgroundColor: isDragActive ? '#f0f0f0' : 'transparent',
-              textAlign: 'center',
-            }}
-          >
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFile />}
-              fullWidth
+          {!isGroupConfirmed && (
+            <Box
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleUploadExcel}
+              sx={{
+                border: isDragActive ? '2px dashed #1976d2' : 'none',
+                borderRadius: '4px',
+                padding: isDragActive ? '20px' : '0',
+                backgroundColor: isDragActive ? '#f0f0f0' : 'transparent',
+                textAlign: 'center',
+              }}
             >
-              Įkelti Excel
-              <input
-                type="file"
-                accept=".xlsx, .xls"
-                hidden
-                onChange={handleUploadExcel}
-              />
-            </Button>
-            {isDragActive && (
-              <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
-                Numeskite failą čia
-              </Typography>
-            )}
-          </Box>
+              <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
+                Įkelti Excel
+                <input type="file" accept=".xlsx, .xls" hidden onChange={handleUploadExcel} />
+              </Button>
+              {isDragActive && (
+                <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                  Numeskite failą čia
+                </Typography>
+              )}
+            </Box>
+          )}
+          {excelFile && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {`Įkeltas failas: ${excelFile.name}`}
+            </Typography>
+          )}
         </Grid>
         <Grid item xs={6}>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<Download />}
-            fullWidth
-            href="/Sarasas.xlsx"
-            download="Vartotojų_Šablonas.xlsx"
-          >
-            Atsisiųsti šabloną
-          </Button>
+          {!isGroupConfirmed && (
+            <Button variant="contained" color="secondary" startIcon={<Download />} fullWidth href="/Sarasas.xlsx" download="Vartotojų_Šablonas.xlsx">
+              Atsisiųsti šabloną
+            </Button>
+          )}
         </Grid>
       </Grid>
 
@@ -317,6 +334,7 @@ const AddUserList: React.FC = () => {
                 value={user.Vardas}
                 onChange={(event) => handleInputChange(index, event)}
                 required
+                disabled={isGroupConfirmed}
               />
             </Grid>
             <Grid item xs={12} sm={3}>
@@ -327,6 +345,7 @@ const AddUserList: React.FC = () => {
                 value={user.Pavarde}
                 onChange={(event) => handleInputChange(index, event)}
                 required
+                disabled={isGroupConfirmed}
               />
             </Grid>
             <Grid item xs={12} sm={3}>
@@ -337,6 +356,7 @@ const AddUserList: React.FC = () => {
                 value={user.ElPastas}
                 onChange={(event) => handleInputChange(index, event)}
                 required
+                disabled={isGroupConfirmed}
               />
             </Grid>
             <Grid item xs={12} sm={3}>
@@ -347,16 +367,12 @@ const AddUserList: React.FC = () => {
                 value={user.Telefonas}
                 onChange={(event) => handleInputChange(index, event)}
                 required
+                disabled={isGroupConfirmed}
               />
             </Grid>
-            {index === users.length - 1 && (
+            {index === users.length - 1 && !isGroupConfirmed && (
               <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSave}
-                  fullWidth
-                >
+                <Button variant="contained" color="primary" onClick={() => handleSave()} fullWidth>
                   Pridėti grupioką
                 </Button>
               </Grid>
@@ -365,21 +381,9 @@ const AddUserList: React.FC = () => {
         </Paper>
       ))}
 
-      {error && (
-        <Alert severity="error" style={{ marginTop: '16px' }}>
-          {error}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" style={{ marginTop: '16px' }}>
-          {successMessage}
-        </Alert>
-      )}
-
-      {/* Dialog for editing user */}
       {editUser && (
         <Dialog open={!!editUser} onClose={() => setEditUser(null)}>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>Redaguoti vartotoją</DialogTitle>
           <DialogContent>
             <TextField
               margin="dense"
@@ -387,6 +391,7 @@ const AddUserList: React.FC = () => {
               fullWidth
               value={editUser.vardas}
               onChange={(e) => setEditUser({ ...editUser, vardas: e.target.value })}
+              disabled={isGroupConfirmed}
             />
             <TextField
               margin="dense"
@@ -394,6 +399,7 @@ const AddUserList: React.FC = () => {
               fullWidth
               value={editUser.pavarde}
               onChange={(e) => setEditUser({ ...editUser, pavarde: e.target.value })}
+              disabled={isGroupConfirmed}
             />
             <TextField
               margin="dense"
@@ -401,6 +407,7 @@ const AddUserList: React.FC = () => {
               fullWidth
               value={editUser.prisijungimoVardas}
               onChange={(e) => setEditUser({ ...editUser, prisijungimoVardas: e.target.value })}
+              disabled={isGroupConfirmed}
             />
             <TextField
               margin="dense"
@@ -408,19 +415,60 @@ const AddUserList: React.FC = () => {
               fullWidth
               value={editUser.telefonas}
               onChange={(e) => setEditUser({ ...editUser, telefonas: e.target.value })}
+              disabled={isGroupConfirmed}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditUser(null)} color="secondary">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEditUser} color="primary">
-              Save
-            </Button>
+            {!isGroupConfirmed && (
+              <>
+                <Button onClick={() => setEditUser(null)} color="secondary">
+                  Atšaukti
+                </Button>
+                <Button onClick={handleSaveEditUser} color="primary">
+                  Išsaugoti
+                </Button>
+              </>
+            )}
           </DialogActions>
         </Dialog>
       )}
-    </Container>
+
+      {/* <Grid container style={{ marginTop: '16px' }}>
+        <Grid item xs={6}>
+          {!isGroupConfirmed && (
+            <Button variant="contained" color="success" style={{ marginRight: '16px' }} onClick={() => handleFakeSave()}>
+              Išsaugoti
+            </Button>
+          )}
+          {!isGroupConfirmed && (
+            <Button variant="contained" color="success" onClick={() => setConfirmDialogOpen(true)}>
+              Patvirtinti grupę
+            </Button>
+          )}
+        </Grid>
+      </Grid> */}
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+      >
+        <DialogTitle>Patvirtinti grupę</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Ar tikrai norite patvirtinti grupę? Jei ji bus patvirtinta, jos redaguoti nebegalėsite.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)} color="secondary">
+            Atšaukti
+          </Button>
+          <Button onClick={handleConfirmGroup} color="primary">
+            Patvirtinti
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container >
   );
 };
 

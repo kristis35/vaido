@@ -25,13 +25,13 @@ namespace backas.Controllers
                 return BadRequest("University name and short name are required.");
             }
 
-            var newUniversity = new Universitetas
+            var newUniversity = new universitetas
             {
                 Pavadinimas = request.Pavadinimas,
                 TrumpasPavadinimas = request.TrumpasPavadinimas
             };
 
-            _context.Universitetai.Add(newUniversity);
+            _context.universitetai.Add(newUniversity);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "University created successfully." });
@@ -41,7 +41,7 @@ namespace backas.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAllUniversities()
         {
-            var universities = await _context.Universitetai.ToListAsync();
+            var universities = await _context.universitetai.ToListAsync();
             return Ok(universities);
         }
 
@@ -49,7 +49,7 @@ namespace backas.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUniversityById(int id)
         {
-            var university = await _context.Universitetai.FindAsync(id);
+            var university = await _context.universitetai.FindAsync(id);
             if (university == null)
             {
                 return NotFound("University not found.");
@@ -62,7 +62,7 @@ namespace backas.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUniversity(int id, [FromBody] UniversityRequest request)
         {
-            var university = await _context.Universitetai.FindAsync(id);
+            var university = await _context.universitetai.FindAsync(id);
             if (university == null)
             {
                 return NotFound("University not found.");
@@ -85,13 +85,13 @@ namespace backas.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUniversity(int id)
         {
-            var university = await _context.Universitetai.FindAsync(id);
+            var university = await _context.universitetai.FindAsync(id);
             if (university == null)
             {
                 return NotFound("University not found.");
             }
 
-            _context.Universitetai.Remove(university);
+            _context.universitetai.Remove(university);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "University deleted successfully." });

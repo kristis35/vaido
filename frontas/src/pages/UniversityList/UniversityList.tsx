@@ -26,7 +26,6 @@ const UniversityList: React.FC = () => {
         const universityList = await getData<University[]>('/UniversityCrud/all');
         setUniversities(universityList);
       } catch (error) {
-        console.error('Failed to fetch universities:', error);
       }
     };
 

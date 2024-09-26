@@ -54,8 +54,6 @@ const ProofreadDetails: React.FC = () => {
   const [vignetteChecked, setVignetteChecked] = useState<boolean>(false);
 
   const handleSaveSelection = () => {
-    console.log(`Selected portrait format: ${selectedPortraitOption}`);
-    console.log(`Vignette selected: ${vignetteChecked}`);
     // Implement save logic here
   };
 
@@ -67,7 +65,6 @@ const ProofreadDetails: React.FC = () => {
   };
 
   const handleReportIssue = () => {
-    console.log('Reported picture issue for student:', student.name);
     // Implement reporting logic here
   };
 

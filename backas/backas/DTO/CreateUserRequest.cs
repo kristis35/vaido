@@ -7,8 +7,8 @@
         public string Pavarde { get; set; }  // Last name
         public string Telefonas { get; set; }  // Phone number
         public string VartotojoRole { get; set; }  // User role
-        public int? UniversitetasId { get; set; }  // Nullable University ID
-        public int? FakultetasId { get; set; }
+        public int? universitetasId { get; set; }  // Nullable University ID
+        public int? fakultetasId { get; set; }
     }
 
     public class EditUserRequest
@@ -17,8 +17,8 @@
         public string Pavarde { get; set; }  // Last name
         public string Telefonas { get; set; }  // Phone number
         public string VartotojoRole { get; set; }  // User role
-        public int? UniversitetasId { get; set; }  // Optional: University ID
-        public int? FakultetasId { get; set; }  // Optional: Faculty ID
+        public int? universitetasId { get; set; }  // Optional: University ID
+        public int? fakultetasId { get; set; }  // Optional: Faculty ID
     }
 
 

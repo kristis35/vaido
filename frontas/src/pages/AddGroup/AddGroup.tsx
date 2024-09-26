@@ -7,21 +7,22 @@ import {
   Paper,
   Alert,
   Box,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
-import { Faculty, University, Group, Useris } from '../../interfaces'; // Adjust the import path as necessary
+import { Group, Useris } from '../../interfaces'; // Adjust the import path as necessary
 import { getData, postData } from '../../services/api/Axios'; // Adjust the import path as necessary
+import { useAuth } from '../../services/api/Context'; // Adjust the import path as necessary
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const AddGroupForm: React.FC = () => {
+  const { role, userId } = useAuth(); // Get role and userId from the Auth context
+  const navigate = useNavigate(); // Hook to navigate to a different page
+
   const [group, setGroup] = useState<Group>({
     id: 0,
     pavadinimas: '',
     ilgasPavadinimas: '',
-    universitetasId: 0,
-    fakultetasId: 0,
+    universitetasId: 0, // Set from user data
+    fakultetasId: 0,    // Set from user data
     įstojimoMetai: 0,
     baigimoMetai: 0,
     studentuSkaicius: 0,
@@ -32,58 +33,84 @@ const AddGroupForm: React.FC = () => {
     pastabos: '',
     patvirtintasSarasas: false,
     balsavimasMaketai: false,
-    grupesSeniunas: '',  // Changed to string
+    grupesSeniunas: 0, // This field can now be ignored
     fotografavimoDataVieta: '',
   });
 
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
-  const [universities, setUniversities] = useState<University[]>([]);
-  const [seniunai, setSeniunai] = useState<Useris[]>([]);
+  const [existingGroup, setExistingGroup] = useState<Group | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const location = useLocation();
+  const [message, setMessage] = useState<string>(location.state?.message || '');
 
   useEffect(() => {
-    const fetchFacultiesAndUniversitiesAndSeniunai = async () => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const facultyList = await getData<Faculty[]>('/Fakultetas/all');
-        setFaculties(facultyList);
+        const userData = await getData<Useris>(`/User/get-user/${userId}`);
 
-        const universityList = await getData<University[]>('/UniversityCrud/all');
-        setUniversities(universityList);
+        if (role === 'seniunas' && userData) {
+          const groupData = await getData<Group>(`/Group/get-by-user/${userData.id}`);
 
-        const seniunaiList = await getData<Useris[]>('/User/get-all-users');
-        setSeniunai(seniunaiList.filter(user => user.vartotojoRole === 'seniunas'));
+          if (groupData) {
+            setExistingGroup(groupData); // Save the existing group data if found
+          } else {
+            setGroup(prevGroup => ({
+              ...prevGroup,
+              universitetasId: userData.universitetasId, // Set from user data
+              fakultetasId: userData.fakultetasId,       // Set from user data
+              grupesSeniunas: userData.id,              // Set the seniunasId
+            }));
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
       }
     };
 
-    fetchFacultiesAndUniversitiesAndSeniunai();
-  }, []);
+    fetchData();
+  }, [role, userId]);
 
   const handleInputChange = (field: keyof Group, value: any) => {
     setGroup({ ...group, [field]: value });
   };
 
   const handleSave = async () => {
+    if (existingGroup) {
+      setError('Jūs jau turite priskirtą grupę.');
+      return;
+    }
+
+    const trimmedPavadinimas = group.pavadinimas.trim();
+    const trimmedIlgasPavadinimas = group.ilgasPavadinimas.trim();
+
     if (
-      !group.pavadinimas ||
-      !group.ilgasPavadinimas ||
-      !group.universitetasId ||
-      !group.fakultetasId ||
-      !group.įstojimoMetai ||
-      !group.baigimoMetai ||
-      !group.grupesSeniunas
+      trimmedPavadinimas === '' ||
+      trimmedIlgasPavadinimas === '' ||
+      group.įstojimoMetai <= 0 ||
+      group.baigimoMetai <= 0 ||
+      group.universitetasId <= 0 ||  // Validate universitetasId
+      group.fakultetasId <= 0 ||     // Validate fakultetasId
+      group.grupesSeniunas <= 0      // Validate grupesSeniunas (seniunasId)
     ) {
       setError('Prašome užpildyti visus privalomus laukus.');
     } else {
       setError(null);
       try {
-        await postData('/Group/create', group);
-        setSuccessMessage('Grupė sėkmingai išsaugota!');
-        console.log('Grupė išsaugota:', group);
+        const updatedGroup = {
+          ...group,
+          pavadinimas: trimmedPavadinimas,
+          ilgasPavadinimas: trimmedIlgasPavadinimas,
+        };
 
-        // Reset the form after a successful save
+        await postData('/Group/create', updatedGroup);
+        setSuccessMessage('Grupė sėkmingai išsaugota!');
+
         setGroup({
           id: 0,
           pavadinimas: '',
@@ -100,11 +127,13 @@ const AddGroupForm: React.FC = () => {
           pastabos: '',
           patvirtintasSarasas: false,
           balsavimasMaketai: false,
-          grupesSeniunas: '',
+          grupesSeniunas: 0,  // Reset the seniunasId
           fotografavimoDataVieta: '',
         });
+
+        navigate('/adduserlist');
       } catch (error) {
-        console.error('Failed to save group:', error);
+        setError('Įvyko klaida bandant išsaugoti grupę.');
       }
     }
   };
@@ -116,123 +145,89 @@ const AddGroupForm: React.FC = () => {
           {error}
         </Alert>
       )}
-
+      {message && (
+        <Alert severity="info" style={{ marginBottom: '16px' }}>
+          {message}
+        </Alert>
+      )}
       {successMessage && (
         <Box marginBottom={2}>
           <Alert severity="success">{successMessage}</Alert>
         </Box>
       )}
 
-      <Paper elevation={3} style={{ padding: 16, marginTop: 16 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Pavadinimas"
-              value={group.pavadinimas}
-              onChange={(e) => handleInputChange('pavadinimas', e.target.value)}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Ilgas Pavadinimas"
-              value={group.ilgasPavadinimas}
-              onChange={(e) => handleInputChange('ilgasPavadinimas', e.target.value)}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Universitetas</InputLabel>
-              <Select
-                value={group.universitetasId}
-                onChange={(e) => handleInputChange('universitetasId', e.target.value)}
+      {existingGroup ? (
+        <Box mt={4}>
+          <Alert severity="info">
+            Jūs jau turite priskirtą grupę: {existingGroup.pavadinimas}. Nauja grupė negali būti sukurta.
+          </Alert>
+        </Box>
+      ) : (
+        <Paper elevation={3} style={{ padding: 16, marginTop: 16 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Grupės trumpinys"
+                value={group.pavadinimas}
+                onChange={(e) => handleInputChange('pavadinimas', e.target.value)}
                 required
-              >
-                {universities.map((university) => (
-                  <MenuItem key={university.id} value={university.id}>
-                    {university.pavadinimas}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Fakultetas</InputLabel>
-              <Select
-                value={group.fakultetasId}
-                onChange={(e) => handleInputChange('fakultetasId', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Gupės pavadinimas"
+                value={group.ilgasPavadinimas}
+                onChange={(e) => handleInputChange('ilgasPavadinimas', e.target.value)}
                 required
-              >
-                {faculties.map((faculty) => (
-                  <MenuItem key={faculty.id} value={faculty.id}>
-                    {faculty.pavadinimas}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Įstojimo Metai"
-              type="number"
-              value={group.įstojimoMetai}
-              onChange={(e) => handleInputChange('įstojimoMetai', parseInt(e.target.value))}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Baigimo Metai"
-              type="number"
-              value={group.baigimoMetai}
-              onChange={(e) => handleInputChange('baigimoMetai', parseInt(e.target.value))}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Grupės Seniūnas</InputLabel>
-              <Select
-                value={group.grupesSeniunas}
-                onChange={(e) => handleInputChange('grupesSeniunas', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Įstojimo Metai"
+                type="number"
+                value={group.įstojimoMetai}
+                onChange={(e) => handleInputChange('įstojimoMetai', parseInt(e.target.value))}
                 required
-              >
-                {seniunai.map((seniunas) => (
-                  <MenuItem key={seniunas.id} value={String(seniunas.id)}>
-                    {`${seniunas.vardas} ${seniunas.pavarde}`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Baigimo Metai"
+                type="number"
+                value={group.baigimoMetai}
+                onChange={(e) => handleInputChange('baigimoMetai', parseInt(e.target.value))}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <TextField
+                fullWidth
+                label="Narių Skaičius"
+                type="number"
+                value={group.studentuSkaicius}
+                onChange={(e) => handleInputChange('studentuSkaicius', parseInt(e.target.value))}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Narių Skaičius"
-              type="number"
-              value={group.studentuSkaicius}
-              onChange={(e) => handleInputChange('studentuSkaicius', parseInt(e.target.value))}
-            />
-          </Grid>
-        </Grid>
-      </Paper>
+        </Paper>
+      )}
 
-      <Box mt={4}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSave}
-          fullWidth
-        >
-          Išsaugoti
-        </Button>
-      </Box>
+      {!existingGroup && (
+        <Box mt={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSave}
+            fullWidth
+          >
+            Išsaugoti
+          </Button>
+        </Box>
+      )}
     </Container>
   );
 };
