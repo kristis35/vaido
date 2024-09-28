@@ -185,6 +185,22 @@
   },
   {
     "ContainingType": "backas.Controllers.GroupController",
+    "Method": "GetGroupByUserId",
+    "RelativePath": "api/Group/get-by-user/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backas.Controllers.GroupController",
     "Method": "GetGroupById",
     "RelativePath": "api/Group/get/{id}",
     "HttpMethod": "GET",
@@ -306,6 +322,22 @@
   },
   {
     "ContainingType": "backas.Controllers.UserController",
+    "Method": "DeleteUser",
+    "RelativePath": "api/User/delete-user/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backas.Controllers.UserController",
     "Method": "EditUser",
     "RelativePath": "api/User/edit-user/{id}",
     "HttpMethod": "PUT",
@@ -345,6 +377,38 @@
     "Parameters": [
       {
         "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backas.Controllers.UserController",
+    "Method": "GetUsersByGroupId",
+    "RelativePath": "api/User/get-users-by-group/{groupId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "groupId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backas.Controllers.UserController",
+    "Method": "RemoveUserFromGroup",
+    "RelativePath": "api/User/remove-user-from-group/{userId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
         "Type": "System.Int32",
         "IsRequired": true
       }

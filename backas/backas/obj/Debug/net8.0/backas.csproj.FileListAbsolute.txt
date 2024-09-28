@@ -292,3 +292,6 @@ C:\Users\krist\Desktop\vaidas\backas\backas\bin\Debug\net8.0\BouncyCastle.Crypto
 C:\Users\krist\Desktop\vaidas\backas\backas\bin\Debug\net8.0\MailKit.dll
 C:\Users\krist\Desktop\vaidas\backas\backas\bin\Debug\net8.0\MimeKit.dll
 C:\Users\krist\Desktop\vaidas\backas\backas\bin\Debug\net8.0\System.Formats.Asn1.dll
+C:\Users\adome\OneDrive\Desktop\vaido\backas\backas\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\adome\OneDrive\Desktop\vaido\backas\backas\bin\Debug\net8.0\MailKit.dll
+C:\Users\adome\OneDrive\Desktop\vaido\backas\backas\bin\Debug\net8.0\MimeKit.dll

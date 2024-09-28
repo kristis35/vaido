@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\krist\\Desktop\\vaidas\\backas\\backas\\backas.csproj": {}
+    "C:\\Users\\adome\\OneDrive\\Desktop\\vaido\\backas\\backas\\backas.csproj": {}
   },
   "projects": {
-    "C:\\Users\\krist\\Desktop\\vaidas\\backas\\backas\\backas.csproj": {
+    "C:\\Users\\adome\\OneDrive\\Desktop\\vaido\\backas\\backas\\backas.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\krist\\Desktop\\vaidas\\backas\\backas\\backas.csproj",
+        "projectUniqueName": "C:\\Users\\adome\\OneDrive\\Desktop\\vaido\\backas\\backas\\backas.csproj",
         "projectName": "backas",
-        "projectPath": "C:\\Users\\krist\\Desktop\\vaidas\\backas\\backas\\backas.csproj",
-        "packagesPath": "C:\\Users\\krist\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\krist\\Desktop\\vaidas\\backas\\backas\\obj\\",
+        "projectPath": "C:\\Users\\adome\\OneDrive\\Desktop\\vaido\\backas\\backas\\backas.csproj",
+        "packagesPath": "C:\\Users\\adome\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\adome\\OneDrive\\Desktop\\vaido\\backas\\backas\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\krist\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\adome\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -42,8 +42,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
-        }
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -107,7 +108,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.1.24452.12/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

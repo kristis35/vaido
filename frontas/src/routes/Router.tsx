@@ -22,6 +22,7 @@ import UniversityList from '../pages/UniversityList/UniversityList';
 import FacultyList from '../pages/FacultyList/FacultyList';
 import GroupList from '../pages/GroupList/GroupList';
 import Logout from '../pages/Logout'
+import MembersList from '../pages/MembersList/MembersList';
 
 
 const AppRouter = () => {
@@ -54,6 +55,7 @@ const AppRouter = () => {
             <Route path="/universitylist" element={<UniversityList />} />
             <Route path="/facultylist" element={<FacultyList />} />
             <Route path="/grouplist" element={<GroupList />} />
+            <Route path="/memberslist" element={<MembersList />} />
           </>
         )}
 
@@ -62,6 +64,10 @@ const AppRouter = () => {
           <>
             <Route path="/photographerlist" element={<PhotographerList />} />
             <Route path="/photoupload" element={<PhotoUpload />} />
+            <Route path="/choosedate" element={<ChooseDate />} />
+            <Route path="/choosedate/:groupId" element={<ChooseDate />} />
+            <Route path="/photoupload/:groupId" element={<PhotoUpload />} />
+            <Route path="/memberslist/:groupId" element={<MembersList />} />
           </>
         )}
 

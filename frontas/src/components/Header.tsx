@@ -47,6 +47,12 @@ const Header: React.FC = () => {
               <Button color="inherit" component={Link} to="/photoupload">
                 Photo Upload
               </Button>
+              <Button color="inherit" component={Link} to="/choosedate">
+                Choose Date
+              </Button>
+              <Button color="inherit" component={Link} to="/memberslist">
+                Members List
+              </Button>
             </>
           )}
 
